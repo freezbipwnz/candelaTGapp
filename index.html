@@ -581,20 +581,20 @@
 
         <!-- РАЗДЕЛ «ОТЗЫВЫ» (ПЕРЕД КНОПКОЙ «ДОБАВИТЬ В КОРЗИНУ») -->
         <div class="c-surface p-4 rounded-2xl border space-y-3">
-          <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center justify-between gap-3">
             <h4 class="font-serif text-lg font-bold c-text">Отзывы покупателей</h4>
             <button onclick="openReviewModal()" class="shrink-0 px-3 py-1.5 rounded-xl bg-[#B8683D]/10 dark:bg-[#D9875A]/20 text-[#B8683D] dark:text-[#D9875A] text-xs font-semibold whitespace-nowrap active:scale-95 transition-transform flex items-center gap-1">
               <span>+</span>
               <span>Отзыв</span>
             </button>
           </div>
-          <div class="flex items-center gap-2 -mt-1">
+          <div class="flex items-center gap-2.5">
             <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-bold shrink-0">
               <span class="text-amber-500">★</span><span>4.9</span>
             </span>
             <p class="text-xs c-text-muted leading-tight" id="pdp-reviews-count">54 отзыва • 98% рекомендуют этот аромат</p>
           </div>
-          <div id="pdp-reviews-list" class="space-y-2 max-h-48 overflow-y-auto no-scrollbar"></div>
+          <div id="pdp-reviews-list" class="space-y-2.5 max-h-48 overflow-y-auto no-scrollbar pt-1"></div>
         </div>
 
         <button onclick="addPdpToCart()" class="w-full py-3.5 rounded-xl bg-[#B8683D] dark:bg-[#D9875A] text-white font-semibold text-xs shadow-lg active:scale-98 transition-transform">
@@ -949,16 +949,18 @@
               </div>
             </div>
             <!-- Раздел Отзывы перед кнопкой добавления в корзину -->
-            <div class="px-4 py-2 border-t c-border bg-black/5 dark:bg-white/5 flex items-center justify-between" onclick="openPdp('${p.id}')">
-              <div>
+            <div class="px-4 py-2.5 border-t c-border bg-black/5 dark:bg-white/5 flex items-center justify-between" onclick="openPdp('${p.id}')">
+              <div class="space-y-1">
                 <div class="flex items-center gap-1.5">
-                  <span class="font-bold text-xs text-amber-500">★ ${p.rating || '4.9'}</span>
+                  <span class="inline-flex items-center gap-0.5 font-bold text-xs text-amber-500">
+                    <span>★</span><span>${p.rating || '4.9'}</span>
+                  </span>
                   <span class="text-[11px] c-text-muted font-medium">(${p.reviewsCount} отзывов)</span>
                   <span class="text-[10px] text-green-700 dark:text-emerald-400 font-semibold">• 98% советуют</span>
                 </div>
-                <p class="text-[10px] c-text-muted italic mt-0.5 line-clamp-1">«${p.topReview}» — ${p.topAuthor}</p>
+                <p class="text-[10px] c-text-muted italic line-clamp-1 leading-snug">«${p.topReview}» — ${p.topAuthor}</p>
               </div>
-              <span class="text-xs text-[#B8683D] dark:text-[#D9875A] font-semibold">Отзывы →</span>
+              <span class="text-xs text-[#B8683D] dark:text-[#D9875A] font-semibold shrink-0 ml-2">Отзывы →</span>
             </div>
             <div class="p-3 flex items-center justify-between">
               <span class="font-bold text-sm c-text">${currentPrice} ₽</span>
@@ -990,12 +992,15 @@
                 `).join('')}
               </div>
               <!-- Раздел Отзывы перед кнопкой добавления в корзину -->
-              <div class="pt-1 border-t c-border" onclick="openPdp('${p.id}')">
-                <div class="flex items-center justify-between text-[10px] mb-0.5">
-                  <span class="font-bold text-amber-500 flex items-center gap-0.5">★ ${p.rating || '4.9'} <span class="c-text-muted font-normal">(${p.reviewsCount})</span></span>
-                  <span class="text-[9px] text-[#B8683D] dark:text-[#D9875A] font-medium">Отзывы →</span>
+              <div class="my-2 pt-2 border-t c-border space-y-1" onclick="openPdp('${p.id}')">
+                <div class="flex items-center justify-between text-[11px]">
+                  <span class="inline-flex items-center gap-1 font-bold text-amber-500">
+                    <span>★</span><span>${p.rating || '4.9'}</span>
+                    <span class="c-text-muted font-normal text-[10px]">(${p.reviewsCount})</span>
+                  </span>
+                  <span class="text-[10px] text-[#B8683D] dark:text-[#D9875A] font-medium">Отзывы →</span>
                 </div>
-                <p class="text-[9px] c-text-muted italic line-clamp-1">«${p.topReview}»</p>
+                <p class="text-[10px] c-text-muted italic line-clamp-1 leading-snug">«${p.topReview}»</p>
               </div>
               <button onclick="addToCart('${p.id}')" class="w-full py-1.5 rounded-xl bg-[#B8683D] dark:bg-[#D9875A] text-white text-[11px] font-semibold flex items-center justify-center gap-1.5 shadow-xs active:scale-95 transition-transform">
                 ${PLUS_SVG}
@@ -1022,12 +1027,15 @@
               </div>
             </div>
             <!-- Раздел Отзывы перед кнопкой добавления в корзину -->
-            <div class="mb-2 pt-1 border-t c-border" onclick="openPdp('${p.id}')">
-              <div class="flex items-center justify-between text-[10px]">
-                <span class="font-bold text-amber-500 flex items-center gap-0.5">★ ${p.rating || '4.9'} <span class="c-text-muted font-normal">(${p.reviewsCount})</span></span>
-                <span class="text-[9px] text-[#B8683D] dark:text-[#D9875A] font-medium">Отзывы →</span>
+            <div class="my-2 pt-2 border-t c-border space-y-1" onclick="openPdp('${p.id}')">
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="inline-flex items-center gap-1 font-bold text-amber-500">
+                  <span>★</span><span>${p.rating || '4.9'}</span>
+                  <span class="c-text-muted font-normal text-[10px]">(${p.reviewsCount})</span>
+                </span>
+                <span class="text-[10px] text-[#B8683D] dark:text-[#D9875A] font-medium">Отзывы →</span>
               </div>
-              <p class="text-[9px] c-text-muted italic line-clamp-1 mt-0.5">«${p.topReview}»</p>
+              <p class="text-[10px] c-text-muted italic line-clamp-1 leading-snug">«${p.topReview}»</p>
             </div>
             <div class="pt-1.5 border-t c-border flex items-center justify-between">
               <span class="font-bold text-xs c-text">${currentPrice} ₽</span>
