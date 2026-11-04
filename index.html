@@ -120,10 +120,10 @@
     }
   </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-0 md:p-6 antialiased selection:bg-[#B8683D] selection:text-white">
+<body class="h-screen w-screen overflow-hidden flex items-center justify-center p-0 md:p-6 antialiased selection:bg-[#B8683D] selection:text-white">
 
   <!-- Контейнер Telegram Mini App (Подиум 430px) -->
-  <div id="app-container" class="c-app w-full max-w-[430px] min-h-screen md:min-h-[880px] md:max-h-[920px] shadow-2xl md:rounded-[40px] flex flex-col justify-between overflow-hidden relative border transition-colors duration-300">
+  <div id="app-container" class="c-app w-full max-w-[430px] h-full md:h-[880px] md:max-h-[920px] shadow-2xl md:rounded-[40px] flex flex-col overflow-hidden relative border transition-colors duration-300">
 
     <!-- Всплывающий тост Haptic Feedback прямо в зоне внимания над шапкой -->
     <div id="haptic-toast" class="absolute top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-1.5 rounded-full bg-[#201D1B]/95 dark:bg-[#352E28]/95 text-[#F5F2EE] text-xs font-medium shadow-xl opacity-0 pointer-events-none transition-all duration-300 flex items-center gap-1.5 backdrop-blur-md border border-white/10">
@@ -131,8 +131,8 @@
       <span id="haptic-text">Действие выполнено</span>
     </div>
 
-    <!-- 1. ШАПКА ПРИЛОЖЕНИЯ (STICKY HEADER) -->
-    <header class="c-header sticky top-0 z-30 backdrop-blur-md border-b px-4 py-2.5 flex items-center justify-between transition-colors duration-300">
+    <!-- 1. ШАПКА ПРИЛОЖЕНИЯ (FIXED HEADER) -->
+    <header class="c-header flex-shrink-0 z-30 backdrop-blur-md border-b px-4 py-2.5 flex items-center justify-between transition-colors duration-300">
       <!-- SVG Логотип Candela HOME -->
       <div class="cursor-pointer" onclick="switchTab('catalog')">
         <svg viewBox="0 0 500 200" class="h-8 w-auto c-text" xmlns="http://www.w3.org/2000/svg">
@@ -480,8 +480,8 @@
       </section>
     </main>
 
-    <!-- 3. НАВИГАЦИОННЫЙ ТАБ-БАР (ПРИВЯЗАННЫЙ БЭДЖИК КОРЗИНЫ) -->
-    <nav class="c-nav sticky bottom-0 z-30 backdrop-blur-md border-t px-3 py-2 transition-colors duration-300">
+    <!-- 3. НАВИГАЦИОННЫЙ ТАБ-БАР (FIXED NAV) -->
+    <nav class="c-nav flex-shrink-0 z-30 backdrop-blur-md border-t px-3 py-2 transition-colors duration-300">
       <div class="grid grid-cols-4 gap-1">
         <!-- КАТАЛОГ -->
         <button onclick="switchTab('catalog')" id="nav-catalog" class="nav-btn py-1 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-[#B8683D] dark:text-[#D9875A] font-semibold transition-colors">
@@ -532,10 +532,6 @@
 
         <div class="relative aspect-square rounded-2xl overflow-hidden bg-black/10 dark:bg-white/5">
           <img id="pdp-img" src="" class="w-full h-full object-cover" alt="">
-          <!-- Оценка 4.9 в правом верхнем углу фото -->
-          <span class="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-full bg-black/65 backdrop-blur-md text-[#FBF9F5] text-xs font-bold border border-white/10 shadow-sm flex items-center gap-1 z-10">
-            <span class="text-amber-400">★</span> 4.9
-          </span>
           <button onclick="prevPdpImg()" class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 z-10">‹</button>
           <button onclick="nextPdpImg()" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 z-10">›</button>
         </div>
@@ -585,18 +581,19 @@
 
         <!-- РАЗДЕЛ «ОТЗЫВЫ» (ПЕРЕД КНОПКОЙ «ДОБАВИТЬ В КОРЗИНУ») -->
         <div class="c-surface p-4 rounded-2xl border space-y-3">
-          <div class="flex items-center justify-between">
-            <div>
-              <div class="flex items-center gap-2">
-                <h4 class="font-serif text-lg font-bold c-text">Отзывы покупателей</h4>
-                <span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[11px] font-bold flex items-center gap-0.5">
-                  ★ 4.9
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex-1 min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <h4 class="font-serif text-lg font-bold c-text whitespace-nowrap">Отзывы покупателей</h4>
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-bold whitespace-nowrap shrink-0">
+                  <span class="text-amber-500">★</span> 4.9
                 </span>
               </div>
-              <p class="text-[10px] c-text-muted mt-0.5" id="pdp-reviews-count">54 отзыва • 98% рекомендуют этот аромат</p>
+              <p class="text-[10px] c-text-muted mt-1 leading-tight" id="pdp-reviews-count">54 отзыва • 98% рекомендуют этот аромат</p>
             </div>
-            <button onclick="openReviewModal()" class="px-2.5 py-1 rounded-xl bg-[#B8683D]/10 dark:bg-[#D9875A]/20 text-[#B8683D] dark:text-[#D9875A] text-[11px] font-semibold active:scale-95 transition-transform">
-              + Отзыв
+            <button onclick="openReviewModal()" class="shrink-0 px-3 py-1.5 rounded-xl bg-[#B8683D]/10 dark:bg-[#D9875A]/20 text-[#B8683D] dark:text-[#D9875A] text-xs font-semibold whitespace-nowrap active:scale-95 transition-transform flex items-center gap-1">
+              <span>+</span>
+              <span>Отзыв</span>
             </button>
           </div>
           <div id="pdp-reviews-list" class="space-y-2 max-h-48 overflow-y-auto no-scrollbar"></div>
@@ -942,8 +939,8 @@
               <img src="${p.images[0]}" class="w-full h-full object-cover">
               <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
               <span class="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full text-[9px] uppercase tracking-widest bg-black/60 text-[#D9875A] font-semibold backdrop-blur-md border border-white/10 shadow-xs">${p.badge}</span>
-              <!-- Оценка 4.9 в правом верхнем углу фото -->
-              <span class="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-full text-xs font-bold bg-black/65 backdrop-blur-md text-[#FBF9F5] border border-white/10 shadow-sm flex items-center gap-1 z-10">
+              <!-- Оценка в правом нижнем углу фото -->
+              <span class="absolute bottom-2.5 right-2.5 px-2.5 py-1 rounded-full text-xs font-bold bg-black/65 backdrop-blur-md text-[#FBF9F5] border border-white/10 shadow-sm flex items-center gap-1 z-10">
                 <span class="text-amber-400">★</span> ${p.rating || '4.9'}
               </span>
               <div class="absolute bottom-3 left-4 right-4 flex items-end justify-between text-white">
@@ -980,8 +977,8 @@
               <div class="relative aspect-[4/5] rounded-xl overflow-hidden mb-2">
                 <img src="${p.images[0]}" class="w-full h-full object-cover">
                 <span class="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-full text-[9px] bg-black/75 text-white font-medium">${p.badge}</span>
-                <!-- Оценка 4.9 в правом верхнем углу фото -->
-                <span class="absolute top-1.5 right-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-black/65 backdrop-blur-md text-[#FBF9F5] border border-white/10 shadow-xs flex items-center gap-0.5 z-10">
+                <!-- Оценка в правом нижнем углу фото -->
+                <span class="absolute bottom-1.5 right-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-black/65 backdrop-blur-md text-[#FBF9F5] border border-white/10 shadow-xs flex items-center gap-0.5 z-10">
                   <span class="text-amber-400">★</span> ${p.rating || '4.9'}
                 </span>
               </div>
@@ -1015,8 +1012,8 @@
               <div class="relative aspect-square rounded-xl overflow-hidden mb-2">
                 <img src="${p.images[0]}" class="w-full h-full object-cover">
                 <span class="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-full text-[9px] bg-[#B8683D] dark:bg-[#D9875A] text-white font-semibold">${p.badge}</span>
-                <!-- Оценка 4.9 в правом верхнем углу фото -->
-                <span class="absolute top-1.5 right-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-black/65 backdrop-blur-md text-[#FBF9F5] border border-white/10 shadow-xs flex items-center gap-0.5 z-10">
+                <!-- Оценка в правом нижнем углу фото -->
+                <span class="absolute bottom-1.5 right-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-black/65 backdrop-blur-md text-[#FBF9F5] border border-white/10 shadow-xs flex items-center gap-0.5 z-10">
                   <span class="text-amber-400">★</span> ${p.rating || '4.9'}
                 </span>
               </div>
