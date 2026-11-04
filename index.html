@@ -537,13 +537,13 @@
         </div>
 
         <div>
-          <div class="flex items-center justify-between">
+          <div class="flex items-center justify-between gap-3">
             <h3 id="pdp-title" class="font-serif text-2xl font-bold c-text">Табак и Ваниль</h3>
-            <span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-bold flex items-center gap-0.5">
-              ★ 4.9
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-bold shrink-0">
+              <span class="text-amber-500">★</span><span>4.9</span>
             </span>
           </div>
-          <p id="pdp-subtitle" class="text-xs c-text-muted mt-0.5">Тёплый камерный вечер у камина</p>
+          <p id="pdp-subtitle" class="text-xs c-text-muted mt-1">Тёплый камерный вечер у камина</p>
         </div>
 
         <div class="space-y-1.5">
@@ -581,20 +581,18 @@
 
         <!-- РАЗДЕЛ «ОТЗЫВЫ» (ПЕРЕД КНОПКОЙ «ДОБАВИТЬ В КОРЗИНУ») -->
         <div class="c-surface p-4 rounded-2xl border space-y-3">
-          <div class="flex items-start justify-between gap-3">
-            <div class="flex-1 min-w-0">
-              <div class="flex flex-wrap items-center gap-2">
-                <h4 class="font-serif text-lg font-bold c-text whitespace-nowrap">Отзывы покупателей</h4>
-                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-bold whitespace-nowrap shrink-0">
-                  <span class="text-amber-500">★</span> 4.9
-                </span>
-              </div>
-              <p class="text-[10px] c-text-muted mt-1 leading-tight" id="pdp-reviews-count">54 отзыва • 98% рекомендуют этот аромат</p>
-            </div>
+          <div class="flex items-center justify-between gap-2">
+            <h4 class="font-serif text-lg font-bold c-text">Отзывы покупателей</h4>
             <button onclick="openReviewModal()" class="shrink-0 px-3 py-1.5 rounded-xl bg-[#B8683D]/10 dark:bg-[#D9875A]/20 text-[#B8683D] dark:text-[#D9875A] text-xs font-semibold whitespace-nowrap active:scale-95 transition-transform flex items-center gap-1">
               <span>+</span>
               <span>Отзыв</span>
             </button>
+          </div>
+          <div class="flex items-center gap-2 -mt-1">
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-bold shrink-0">
+              <span class="text-amber-500">★</span><span>4.9</span>
+            </span>
+            <p class="text-xs c-text-muted leading-tight" id="pdp-reviews-count">54 отзыва • 98% рекомендуют этот аромат</p>
           </div>
           <div id="pdp-reviews-list" class="space-y-2 max-h-48 overflow-y-auto no-scrollbar"></div>
         </div>
