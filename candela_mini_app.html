@@ -131,43 +131,33 @@
       <span id="haptic-text">Действие выполнено</span>
     </div>
 
-    <!-- 1. ШАПКА ПРИЛОЖЕНИЯ (FIXED HEADER) -->
-    <header class="c-header flex-shrink-0 z-30 backdrop-blur-md border-b px-4 py-2.5 flex items-center justify-between transition-colors duration-300">
-      <!-- SVG Логотип Candela HOME -->
-      <div class="cursor-pointer" onclick="switchTab('catalog')">
-        <svg viewBox="0 0 500 200" class="h-8 w-auto c-text" xmlns="http://www.w3.org/2000/svg">
+    <!-- 1. ШАПКА ПРИЛОЖЕНИЯ (FIXED HEADER: ЛОГОТИП СТРОГО ПО ЦЕНТРУ) -->
+    <header class="c-header flex-shrink-0 z-30 backdrop-blur-md border-b px-4 py-3 flex items-center justify-center transition-colors duration-300">
+      <!-- SVG Логотип Candela HOME строго по центру -->
+      <div class="cursor-pointer flex items-center justify-center" onclick="switchTab('catalog')">
+        <svg viewBox="0 0 500 200" class="h-9 w-auto c-text" xmlns="http://www.w3.org/2000/svg">
           <g text-anchor="middle">
             <text x="250" y="115" class="font-script text-[106px]" fill="currentColor">Candela</text>
             <text x="254" y="170" style="font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 500; letter-spacing: 0.52em; text-transform: uppercase;" fill="currentColor" opacity="0.9">HOME</text>
           </g>
         </svg>
       </div>
-
-      <div class="flex items-center gap-1.5">
-        <!-- Поиск -->
-        <button onclick="toggleSearch()" class="w-8 h-8 rounded-xl flex items-center justify-center c-text hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all" title="Поиск">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        </button>
-
-        <!-- Тема день/ночь -->
-        <button onclick="toggleTheme()" class="w-8 h-8 rounded-xl flex items-center justify-center c-text hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all" title="Сменить тему">
-          <svg id="theme-icon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-        </button>
-
-        <!-- Корзина в шапке -->
-        <button onclick="switchTab('cart')" class="relative w-8 h-8 rounded-xl bg-[#B8683D] dark:bg-[#D9875A] text-white flex items-center justify-center shadow-sm active:scale-95 transition-transform" title="Корзина">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
-          <span id="header-cart-badge" class="absolute -top-1 -right-1 min-w-[16px] h-4 px-0.5 bg-[#3A4436] dark:bg-[#283224] text-white rounded-full text-[9px] font-bold flex items-center justify-center border border-[#FBF9F5] dark:border-[#141211]">1</span>
-        </button>
-      </div>
     </header>
 
-    <!-- ПОИСКОВАЯ СТРОКА (СКРЫТАЯ) -->
-    <div id="search-bar" class="hidden px-4 py-2 border-b c-surface transition-colors duration-300">
+    <!-- ПОИСКОВАЯ СТРОКА ПОД ШАПКОЙ (ПОСТОЯННАЯ, ДЛИННОЕ ПОЛЕ) -->
+    <div id="search-bar" class="px-4 py-2.5 border-b c-surface flex-shrink-0 transition-colors duration-300">
       <div class="relative">
-        <input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="Поиск по ароматам, нотам (инжир, табак, кедр)..." class="c-input w-full pl-8 pr-8 py-2 rounded-xl text-xs border focus:outline-none focus:ring-1 focus:ring-[#B8683D] dark:focus:ring-[#D9875A]">
-        <svg class="w-4 h-4 absolute left-2.5 top-2.5 c-text-muted" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <button onclick="clearSearch()" class="absolute right-2.5 top-2.5 c-text-muted text-xs">✕</button>
+        <input 
+          type="text" 
+          id="search-input" 
+          oninput="handleSearch(this.value)" 
+          placeholder="Найти в Candela Home" 
+          onfocus="this.dataset.ph=this.placeholder; this.placeholder=''" 
+          onblur="if(!this.placeholder) this.placeholder=this.dataset.ph || 'Найти в Candela Home'"
+          class="c-input w-full pl-9 pr-8 py-2.5 rounded-2xl text-xs border focus:outline-none focus:ring-1 focus:ring-[#B8683D] dark:focus:ring-[#D9875A] transition-all shadow-xs"
+        >
+        <svg class="w-4 h-4 absolute left-3 top-3 c-text-muted pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <button onclick="clearSearch()" class="absolute right-2.5 top-2.5 w-5 h-5 flex items-center justify-center rounded-full c-text-muted hover:c-text text-xs">✕</button>
       </div>
     </div>
 
