@@ -1,0 +1,17 @@
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.log
+
+# Sensitive environment variables
+.env
+
+# IDE
+.vscode/
+.idea/
