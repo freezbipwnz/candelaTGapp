@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 240" width="100%" height="100%">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&amp;family=Montserrat:wght@300;400;500&amp;display=swap');
+      .candela-script {
+        font-family: 'Great Vibes', 'Alex Brush', 'Brush Script MT', 'Dancing Script', cursive;
+        font-size: 104px;
+        fill: currentColor;
+      }
+      .home-subtext {
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 15px;
+        font-weight: 400;
+        letter-spacing: 0.48em;
+        text-transform: uppercase;
+        fill: currentColor;
+        opacity: 0.88;
+      }
+    </style>
+  </defs>
+
+  <!-- Group for centering and color inheritance -->
+  <g text-anchor="middle">
+    <!-- "Candela" script lettering -->
+    <text x="250" y="132" class="candela-script">Candela</text>
+    
+    <!-- "H O M E" geometric spaced subtitle -->
+    <!-- dx pushes the visual center to balance extra letter-spacing on the last letter -->
+    <text x="254" y="180" class="home-subtext">HOME</text>
+  </g>
+</svg>

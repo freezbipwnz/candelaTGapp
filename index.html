@@ -1,0 +1,1614 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Candela Home — Telegram Mini App</title>
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Разрешенный Tailwind CSS согласно правилам Antigravity generative_ui -->
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: '#B8683D',
+            brandDark: '#D9875A'
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Great+Vibes&family=Montserrat:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+    
+    :root {
+      --bg-page: #2A2725;
+      --bg-app: #FBF9F5;
+      --bg-surface: #F3EFEA;
+      --bg-card: #FFFFFF;
+      --border-color: #E5DFD7;
+      --text-main: #201D1B;
+      --text-muted: #78716A;
+      --accent: #B8683D;
+      --accent-glow: #A0552D;
+      --header-bg: rgba(251, 249, 245, 0.96);
+      --nav-bg: rgba(251, 249, 245, 0.96);
+      --modal-bg: #FBF9F5;
+      --input-bg: #FFFFFF;
+    }
+
+    .dark {
+      --bg-page: #0C0A09;
+      --bg-app: #141211;
+      --bg-surface: #1C1917;
+      --bg-card: #24201D;
+      --border-color: #352E28;
+      --text-main: #F5F2EE;
+      --text-muted: #A39B92;
+      --accent: #D9875A;
+      --accent-glow: #E2956C;
+      --header-bg: rgba(20, 18, 17, 0.96);
+      --nav-bg: rgba(20, 18, 17, 0.96);
+      --modal-bg: #181514;
+      --input-bg: #24201D;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-page);
+      transition: background-color 0.3s ease;
+    }
+    .font-serif {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+    }
+    .font-script {
+      font-family: 'Great Vibes', cursive;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Семантические классы темы для гарантированной контрастности */
+    .c-app {
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      border-color: var(--border-color);
+    }
+    .c-surface {
+      background-color: var(--bg-surface);
+      border-color: var(--border-color);
+      color: var(--text-main);
+    }
+    .c-card {
+      background-color: var(--bg-card);
+      border-color: var(--border-color);
+      color: var(--text-main);
+    }
+    .c-border {
+      border-color: var(--border-color);
+    }
+    .c-text {
+      color: var(--text-main);
+    }
+    .c-text-muted {
+      color: var(--text-muted);
+    }
+    .c-input {
+      background-color: var(--input-bg);
+      border-color: var(--border-color);
+      color: var(--text-main);
+    }
+    .c-header {
+      background-color: var(--header-bg);
+      border-color: var(--border-color);
+    }
+    .c-nav {
+      background-color: var(--nav-bg);
+      border-color: var(--border-color);
+    }
+    .c-modal {
+      background-color: var(--modal-bg);
+      border-color: var(--border-color);
+      color: var(--text-main);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-0 md:p-6 antialiased selection:bg-[#B8683D] selection:text-white">
+
+  <!-- Контейнер Telegram Mini App (Подиум 430px) -->
+  <div id="app-container" class="c-app w-full max-w-[430px] min-h-screen md:min-h-[880px] md:max-h-[920px] shadow-2xl md:rounded-[40px] flex flex-col justify-between overflow-hidden relative border transition-colors duration-300">
+
+    <!-- Всплывающий тост Haptic Feedback прямо в зоне внимания над шапкой -->
+    <div id="haptic-toast" class="absolute top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-1.5 rounded-full bg-[#201D1B]/95 dark:bg-[#352E28]/95 text-[#F5F2EE] text-xs font-medium shadow-xl opacity-0 pointer-events-none transition-all duration-300 flex items-center gap-1.5 backdrop-blur-md border border-white/10">
+      <span>📳</span>
+      <span id="haptic-text">Действие выполнено</span>
+    </div>
+
+    <!-- 1. ШАПКА ПРИЛОЖЕНИЯ (STICKY HEADER) -->
+    <header class="c-header sticky top-0 z-30 backdrop-blur-md border-b px-4 py-2.5 flex items-center justify-between transition-colors duration-300">
+      <!-- SVG Логотип Candela HOME -->
+      <div class="cursor-pointer" onclick="switchTab('catalog')">
+        <svg viewBox="0 0 500 200" class="h-8 w-auto c-text" xmlns="http://www.w3.org/2000/svg">
+          <g text-anchor="middle">
+            <text x="250" y="115" class="font-script text-[106px]" fill="currentColor">Candela</text>
+            <text x="254" y="170" style="font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 500; letter-spacing: 0.52em; text-transform: uppercase;" fill="currentColor" opacity="0.9">HOME</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="flex items-center gap-1.5">
+        <!-- Поиск -->
+        <button onclick="toggleSearch()" class="w-8 h-8 rounded-xl flex items-center justify-center c-text hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all" title="Поиск">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </button>
+
+        <!-- Тема день/ночь -->
+        <button onclick="toggleTheme()" class="w-8 h-8 rounded-xl flex items-center justify-center c-text hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all" title="Сменить тему">
+          <svg id="theme-icon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+
+        <!-- Корзина в шапке -->
+        <button onclick="switchTab('cart')" class="relative w-8 h-8 rounded-xl bg-[#B8683D] dark:bg-[#D9875A] text-white flex items-center justify-center shadow-sm active:scale-95 transition-transform" title="Корзина">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+          <span id="header-cart-badge" class="absolute -top-1 -right-1 min-w-[16px] h-4 px-0.5 bg-[#3A4436] dark:bg-[#283224] text-white rounded-full text-[9px] font-bold flex items-center justify-center border border-[#FBF9F5] dark:border-[#141211]">1</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ПОИСКОВАЯ СТРОКА (СКРЫТАЯ) -->
+    <div id="search-bar" class="hidden px-4 py-2 border-b c-surface transition-colors duration-300">
+      <div class="relative">
+        <input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="Поиск по ароматам, нотам (инжир, табак, кедр)..." class="c-input w-full pl-8 pr-8 py-2 rounded-xl text-xs border focus:outline-none focus:ring-1 focus:ring-[#B8683D] dark:focus:ring-[#D9875A]">
+        <svg class="w-4 h-4 absolute left-2.5 top-2.5 c-text-muted" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <button onclick="clearSearch()" class="absolute right-2.5 top-2.5 c-text-muted text-xs">✕</button>
+      </div>
+    </div>
+
+    <!-- 2. ОСНОВНЫЕ ЭКРАНЫ -->
+    <main class="flex-1 overflow-y-auto no-scrollbar pb-16">
+
+      <!-- ВКЛАДКА 1: КАТАЛОГ -->
+      <section id="tab-catalog" class="space-y-5 pb-6">
+        <!-- Hero Banner -->
+        <div class="relative rounded-3xl overflow-hidden mx-4 mt-3 shadow-md min-h-[360px] flex flex-col justify-between p-5">
+          <img src="https://images.unsplash.com/photo-1603006905003-be475563bc59?auto=format&fit=crop&w=800&q=85" class="absolute inset-0 w-full h-full object-cover" alt="Candela Home">
+          <div class="absolute inset-0 bg-gradient-to-t from-[#141211]/95 via-[#141211]/45 to-black/40"></div>
+          
+          <!-- Верхний ряд баннера: увеличенный в 2 раза фирменный логотип Candela HOME -->
+          <div class="relative z-10 flex items-center justify-between">
+            <div class="flex items-center">
+              <svg viewBox="0 0 500 200" class="h-16 sm:h-20 w-auto text-[#FBF9F5] drop-shadow-xl" xmlns="http://www.w3.org/2000/svg">
+                <g text-anchor="middle">
+                  <text x="250" y="115" class="font-script text-[106px]" fill="currentColor">Candela</text>
+                  <text x="254" y="170" style="font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 500; letter-spacing: 0.52em; text-transform: uppercase;" fill="currentColor" opacity="0.95">HOME</text>
+                </g>
+              </svg>
+            </div>
+            <span class="px-3 py-1.5 rounded-full bg-black/45 backdrop-blur-md text-[#D9875A] text-xs font-semibold border border-white/10 shadow-xs">Atelier • Grasse</span>
+          </div>
+
+          <!-- Нижняя часть баннера с УТП и действием -->
+          <div class="relative z-10 space-y-2 text-[#FBF9F5] pt-10">
+            <span class="px-3 py-1 rounded-full bg-white/20 text-xs font-medium backdrop-blur-md">Ручная работа • Масла Граса</span>
+            <h1 class="font-serif text-3xl font-medium leading-tight">Ароматы, создающие состояние дома</h1>
+            <p class="text-xs text-white/80 line-clamp-2">Селективные свечи из соевого воска, диффузоры и саше</p>
+            <button onclick="scrollToCatalog()" class="mt-2 px-5 py-2.5 rounded-xl bg-[#B8683D] dark:bg-[#D9875A] text-white text-xs font-semibold inline-flex items-center gap-2 active:scale-95 transition-transform shadow-md">
+              <span>Смотреть коллекцию</span>
+              <span>↓</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 УТП преимущества -->
+        <div class="px-4">
+          <div class="c-surface grid grid-cols-2 gap-2.5 p-3 rounded-2xl border transition-colors duration-300">
+            <div class="flex items-center gap-2">
+              <span class="text-xl">🍃</span>
+              <div>
+                <p class="font-semibold text-xs leading-tight c-text">100% Соевый воск</p>
+                <p class="text-[10px] c-text-muted">Без копоти и токсинов</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xl">🇫🇷</span>
+              <div>
+                <p class="font-semibold text-xs leading-tight c-text">Масла из Граса</p>
+                <p class="text-[10px] c-text-muted">Сертификаты IFRA</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xl">🪵</span>
+              <div>
+                <p class="font-semibold text-xs leading-tight c-text">Деревянный фитиль</p>
+                <p class="text-[10px] c-text-muted">Уютный треск камина</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xl">🎁</span>
+              <div>
+                <p class="font-semibold text-xs leading-tight c-text">Эко-упаковка</p>
+                <p class="text-[10px] c-text-muted">Готовый подарок</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Селектор категорий -->
+        <div id="catalog-section" class="px-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <h2 class="font-serif text-2xl font-semibold c-text">Бестселлеры сезона</h2>
+            <span class="text-xs c-text-muted" id="product-counter">5 товаров</span>
+          </div>
+          <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+            <button onclick="filterCategory('all', this)" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-medium bg-[#B8683D] dark:bg-[#D9875A] text-white whitespace-nowrap shadow-sm">✨ Все</button>
+            <button onclick="filterCategory('candles', this)" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-medium c-surface border c-text-muted whitespace-nowrap">🕯 Свечи</button>
+            <button onclick="filterCategory('diffusers', this)" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-medium c-surface border c-text-muted whitespace-nowrap">🌾 Диффузоры</button>
+            <button onclick="filterCategory('sachets', this)" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-medium c-surface border c-text-muted whitespace-nowrap">🌸 Саше</button>
+            <button onclick="filterCategory('sets', this)" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-medium c-surface border c-text-muted whitespace-nowrap">🎁 Наборы</button>
+          </div>
+        </div>
+
+        <!-- Сетка товаров (3 стиля с центрированными плюсиками) -->
+        <div class="px-4">
+          <div id="product-grid" class="grid grid-cols-2 gap-3"></div>
+        </div>
+
+        <!-- Интерактивный AI-баннер -->
+        <div class="px-4">
+          <div class="rounded-3xl p-5 bg-[#3A4436] dark:bg-[#222A20] text-[#FBF9F5] space-y-3 shadow-md border border-[#3A4436] dark:border-[#2E372B]">
+            <div class="flex items-center gap-2 text-[#D9875A] text-xs font-semibold uppercase tracking-wider">
+              <span>✦</span>
+              <span>AI Арома-сомелье 2.0</span>
+            </div>
+            <h3 class="font-serif text-2xl font-medium leading-snug">Подбор аромата под ваше состояние</h3>
+            <p class="text-xs text-white/80">6 состояний, 6 пространств и точные ольфакторные ноты из Граса.</p>
+            <button onclick="switchTab('sommelier')" class="w-full py-2.5 rounded-xl bg-[#D9875A] text-white text-xs font-semibold flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-sm">
+              <span>Подобрать аромат с ИИ</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ВКЛАДКА 2: РАСШИРЕННЫЙ АРОМА-СОМЕЛЬЕ (КВИЗ 2.0) -->
+      <section id="tab-sommelier" class="hidden px-4 py-4 space-y-4 pb-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="font-serif text-2xl font-semibold c-text">AI Арома-сомелье</h2>
+            <p class="text-[11px] c-text-muted">Персональный подбор ольфакторной формулы</p>
+          </div>
+          <span id="quiz-step-label" class="px-2.5 py-1 rounded-full bg-[#B8683D]/10 dark:bg-[#D9875A]/20 text-[#B8683D] dark:text-[#D9875A] text-xs font-semibold">Шаг 1 из 3</span>
+        </div>
+
+        <div id="quiz-container" class="c-surface p-4 rounded-3xl border space-y-4 shadow-sm transition-colors duration-300"></div>
+      </section>
+
+      <!-- ВКЛАДКА 3: КОРЗИНА И ЧЕКАУТ С КУРЬЕРОМ И ПОЧТОЙ -->
+      <section id="tab-cart" class="hidden px-4 py-3 space-y-4 pb-6">
+        <div class="px-3.5 py-2.5 rounded-2xl bg-[#3A4436] dark:bg-[#222A20] text-[#FBF9F5] flex items-center justify-between text-xs shadow-sm border border-[#3A4436] dark:border-[#2E372B]">
+          <span class="flex items-center gap-1.5">
+            <span>⏱</span>
+            <span>Товары зарезервированы:</span>
+          </span>
+          <span id="reservation-timer" class="font-mono font-semibold text-[#D9875A]">14:58 мин</span>
+        </div>
+
+        <h2 class="font-serif text-2xl font-semibold c-text">Ваш заказ</h2>
+        
+        <div id="cart-items-list" class="space-y-2.5"></div>
+
+        <!-- Оплата бонусами -->
+        <div class="c-surface p-3.5 rounded-2xl border space-y-2 transition-colors duration-300">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-base">🌿</span>
+              <div>
+                <p class="font-semibold text-xs c-text">Оплата бонусами</p>
+                <p class="text-[10px] c-text-muted">Доступно: <b id="cart-bonus-avail" class="c-text font-bold">620</b> бонусов</p>
+              </div>
+            </div>
+            <input type="checkbox" id="use-bonuses-toggle" checked onchange="toggleBonusUse(this.checked)" class="w-4 h-4 accent-[#B8683D] dark:accent-[#D9875A] rounded cursor-pointer">
+          </div>
+          <p id="bonus-discount-text" class="text-[11px] text-[#B8683D] dark:text-[#D9875A] pt-1">Списание: 450 ₽ (оплата до 100% стоимости товара)</p>
+        </div>
+
+        <!-- Доставка: 3 режима (СДЭК, Курьер, Почта) -->
+        <div class="c-surface p-3.5 rounded-2xl border space-y-3 transition-colors duration-300">
+          <p class="font-semibold text-xs c-text">Способ доставки:</p>
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="setDelivery('cdek', this)" class="delivery-btn p-2 rounded-xl border border-transparent bg-[#B8683D] dark:bg-[#D9875A] text-white text-center shadow-xs">
+              <p class="font-semibold text-[11px]">СДЭК ПВЗ</p>
+              <p class="text-[9px] opacity-80">290 ₽</p>
+            </button>
+            <button onclick="setDelivery('courier', this)" class="delivery-btn p-2 rounded-xl border c-card c-text text-center shadow-xs">
+              <p class="font-semibold text-[11px]">Курьер</p>
+              <p class="text-[9px] opacity-80">490 ₽</p>
+            </button>
+            <button onclick="setDelivery('post', this)" class="delivery-btn p-2 rounded-xl border c-card c-text text-center shadow-xs">
+              <p class="font-semibold text-[11px]">Почта РФ</p>
+              <p class="text-[9px] opacity-80">250 ₽</p>
+            </button>
+          </div>
+
+          <!-- Блок 1: СДЭК ПВЗ -->
+          <div id="cdek-point-block" onclick="openCdekModal()" class="p-2.5 rounded-xl border c-card flex items-center justify-between cursor-pointer hover:border-[#B8683D] dark:hover:border-[#D9875A] transition-colors">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-base text-[#B8683D] dark:text-[#D9875A]">📍</span>
+              <div class="min-w-0">
+                <p id="selected-cdek-address" class="text-[11px] font-semibold truncate c-text">Москва, ул. Малая Бронная, 22</p>
+                <p class="text-[9px] c-text-muted">Срок: Завтра</p>
+              </div>
+            </div>
+            <span class="text-xs c-text-muted">Изменить →</span>
+          </div>
+
+          <!-- Блок 2: Почта России (по аналогии со СДЭК) -->
+          <div id="post-point-block" onclick="openPostModal()" class="hidden p-2.5 rounded-xl border c-card flex items-center justify-between cursor-pointer hover:border-[#B8683D] dark:hover:border-[#D9875A] transition-colors">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-base text-[#B8683D] dark:text-[#D9875A]">📬</span>
+              <div class="min-w-0">
+                <p id="selected-post-address" class="text-[11px] font-semibold truncate c-text">101000, Москва, ул. Мясницкая, 26</p>
+                <p class="text-[9px] c-text-muted">Срок: 2-3 дня</p>
+              </div>
+            </div>
+            <span class="text-xs c-text-muted">Изменить →</span>
+          </div>
+
+          <!-- Блок 3: Курьерская доставка (детальные поля адреса) -->
+          <div id="courier-fields-block" class="hidden space-y-2 pt-1 border-t c-border">
+            <p class="text-[11px] font-semibold c-text">Адрес доставки курьером:</p>
+            <div class="grid grid-cols-2 gap-1.5">
+              <input type="text" id="courier-city" value="Москва" placeholder="Город" class="c-input px-2.5 py-1.5 text-xs rounded-lg border focus:outline-none focus:ring-1 focus:ring-[#B8683D] dark:focus:ring-[#D9875A]">
+              <input type="text" id="courier-street" placeholder="Улица *" class="c-input px-2.5 py-1.5 text-xs rounded-lg border focus:outline-none focus:ring-1 focus:ring-[#B8683D] dark:focus:ring-[#D9875A]">
+            </div>
+            <div class="grid grid-cols-3 gap-1.5">
+              <input type="text" id="courier-house" placeholder="Дом *" class="c-input px-2.5 py-1.5 text-xs rounded-lg border focus:outline-none">
+              <input type="text" id="courier-building" placeholder="Корп/Стр" class="c-input px-2.5 py-1.5 text-xs rounded-lg border focus:outline-none">
+              <input type="text" id="courier-apt" placeholder="Кв/Офис *" class="c-input px-2.5 py-1.5 text-xs rounded-lg border focus:outline-none">
+            </div>
+            <div class="grid grid-cols-3 gap-1.5">
+              <input type="text" id="courier-entrance" placeholder="Подъезд" class="c-input px-2.5 py-1.5 text-xs rounded-lg border focus:outline-none">
+              <input type="text" id="courier-floor" placeholder="Этаж" class="c-input px-2.5 py-1.5 text-xs rounded-lg border focus:outline-none">
+              <input type="text" id="courier-intercom" placeholder="Домофон" class="c-input px-2.5 py-1.5 text-xs rounded-lg border focus:outline-none">
+            </div>
+            <textarea id="courier-comment" rows="2" placeholder="Комментарий курьеру (шлагбаум, код калитки)..." class="c-input w-full px-2.5 py-1.5 text-xs rounded-lg border focus:outline-none"></textarea>
+          </div>
+        </div>
+
+        <!-- Итог -->
+        <div class="c-surface p-4 rounded-2xl border space-y-2 text-xs shadow-sm transition-colors duration-300">
+          <div class="flex justify-between c-text-muted">
+            <span>Товары (<span id="summary-count">1</span>)</span>
+            <span id="summary-subtotal" class="c-text font-semibold">1 890 ₽</span>
+          </div>
+          <div id="summary-bonus-row" class="flex justify-between text-[#B8683D] dark:text-[#D9875A]">
+            <span>Оплата бонусами</span>
+            <span id="summary-bonus-val">-450 ₽</span>
+          </div>
+          <div class="flex justify-between c-text-muted">
+            <span>Доставка</span>
+            <span id="summary-delivery" class="c-text font-semibold">290 ₽</span>
+          </div>
+          <div class="pt-2 border-t c-border flex justify-between font-bold text-base c-text">
+            <span>К оплате</span>
+            <span id="summary-total" class="text-[#B8683D] dark:text-[#D9875A]">1 730 ₽</span>
+          </div>
+          <p class="text-[10px] text-green-700 dark:text-emerald-400 text-right">
+            +<span id="summary-cashback">173</span> бонусов вернётся после получения
+          </p>
+          <button onclick="completePayment()" class="w-full mt-2 py-3.5 rounded-xl bg-[#B8683D] dark:bg-[#D9875A] text-white font-semibold text-sm shadow-md active:scale-98 transition-transform">
+            Оплатить через СБП / Картой
+          </button>
+        </div>
+      </section>
+
+      <!-- ВКЛАДКА 4: ЛИЧНЫЙ КАБИНЕТ (УВЕДОМЛЕНИЕ ВПЛОТНУЮ К ПРОФИЛЮ) -->
+      <section id="tab-profile" class="hidden px-4 py-4 space-y-4 pb-6">
+        <!-- Шапка профиля -->
+        <div class="c-surface p-4 rounded-3xl border space-y-3 shadow-sm transition-colors duration-300">
+          <div class="flex items-center gap-3">
+            <div class="w-14 h-14 rounded-full bg-[#B8683D] dark:bg-[#D9875A] flex items-center justify-center font-serif text-xl font-bold text-white shadow-sm shrink-0">
+              АВ
+            </div>
+            <div class="flex-1 min-w-0">
+              <h2 class="font-serif text-2xl font-semibold leading-tight truncate c-text">Анна Волкова</h2>
+              <p class="text-xs c-text-muted">@anna_volkova • Candela Club</p>
+            </div>
+            <span class="px-2.5 py-1 rounded-full bg-[#3A4436] dark:bg-[#283224] text-white text-[11px] font-semibold shrink-0">Silver 10%</span>
+          </div>
+
+          <!-- УВЕДОМЛЕНИЕ ВПЛОТНУЮ К ПРОФИЛЮ -->
+          <div class="c-card p-2.5 rounded-2xl border flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">⭐️</span>
+              <div>
+                <p class="font-semibold text-xs leading-tight c-text">Оставьте отзыв о заказе #1048</p>
+                <p class="text-[10px] text-[#B8683D] dark:text-[#D9875A] font-medium">+150 бонусов зачислим сразу</p>
+              </div>
+            </div>
+            <button onclick="openReviewModal()" class="px-3 py-1 rounded-xl bg-[#B8683D] dark:bg-[#D9875A] text-white text-[11px] font-semibold active:scale-95 transition-transform shrink-0">
+              Написать
+            </button>
+          </div>
+        </div>
+
+        <!-- Бонусный баланс и прогресс лояльности -->
+        <div class="rounded-3xl p-5 bg-[#3A4436] dark:bg-[#222A20] text-[#FBF9F5] space-y-3 shadow-md border border-[#3A4436] dark:border-[#2E372B]">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-[10px] uppercase tracking-wider text-[#D9875A] font-semibold">Бонусный баланс</p>
+              <p class="text-3xl font-serif font-bold mt-0.5">🌿 <span id="profile-bonus-count">620</span> ₽</p>
+            </div>
+            <span class="text-xs text-[#D9875A]">1 бонус = 1 рубль</span>
+          </div>
+          <div class="space-y-1.5 pt-1">
+            <div class="flex justify-between text-[11px] opacity-80">
+              <span>Ценитель уюта (Silver)</span>
+              <span>Gold 15%</span>
+            </div>
+            <div class="w-full h-2 rounded-full bg-white/20 overflow-hidden">
+              <div class="h-full bg-[#D9875A] rounded-full w-[65%]"></div>
+            </div>
+            <p class="text-[10px] opacity-75">До статуса «Амбассадор Candela» (15%) осталось 6 400 ₽</p>
+          </div>
+        </div>
+
+        <!-- История заказов -->
+        <div class="space-y-2.5">
+          <h3 class="font-serif text-xl font-semibold c-text">История заказов</h3>
+          <div class="c-surface p-3.5 rounded-2xl border space-y-2 shadow-sm transition-colors duration-300">
+            <div class="flex justify-between items-center text-xs">
+              <span class="font-semibold c-text">Заказ #1048</span>
+              <span class="text-[10px] c-text-muted">Вчера</span>
+            </div>
+            <p class="text-xs font-serif c-text-muted">Дикий Инжир и Белая Орхидея (100 мл)</p>
+            <div class="flex items-center justify-between pt-1 text-xs">
+              <span class="font-bold c-text">2 400 ₽</span>
+              <button onclick="openTrackingModal()" class="text-[11px] font-semibold text-[#B8683D] dark:text-[#D9875A] flex items-center gap-1 hover:underline">
+                <span>🚚 Отследить доставку</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- 3. НАВИГАЦИОННЫЙ ТАБ-БАР (ПРИВЯЗАННЫЙ БЭДЖИК КОРЗИНЫ) -->
+    <nav class="c-nav sticky bottom-0 z-30 backdrop-blur-md border-t px-3 py-2 transition-colors duration-300">
+      <div class="grid grid-cols-4 gap-1">
+        <!-- КАТАЛОГ -->
+        <button onclick="switchTab('catalog')" id="nav-catalog" class="nav-btn py-1 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-[#B8683D] dark:text-[#D9875A] font-semibold transition-colors">
+          <div class="relative inline-flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+          </div>
+          <span class="text-[10px]">Каталог</span>
+        </button>
+
+        <!-- АРОМА-ИИ -->
+        <button onclick="switchTab('sommelier')" id="nav-sommelier" class="nav-btn py-1 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-gray-500 dark:text-[#A39B92] transition-colors">
+          <div class="relative inline-flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"></path></svg>
+          </div>
+          <span class="text-[10px]">Арома-ИИ</span>
+        </button>
+
+        <!-- КОРЗИНА (БЭДЖ 100% ПРИВЯЗАН К ИКОНКЕ) -->
+        <button onclick="switchTab('cart')" id="nav-cart" class="nav-btn py-1 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-gray-500 dark:text-[#A39B92] transition-colors">
+          <div class="relative inline-flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+            <span id="nav-cart-badge" class="absolute -top-1 -right-2.5 min-w-[16px] h-4 px-1 bg-[#B8683D] dark:bg-[#D9875A] text-white rounded-full text-[9px] font-bold flex items-center justify-center leading-none pointer-events-none shadow-xs">1</span>
+          </div>
+          <span class="text-[10px]">Корзина</span>
+        </button>
+
+        <!-- ПРОФИЛЬ -->
+        <button onclick="switchTab('profile')" id="nav-profile" class="nav-btn py-1 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-gray-500 dark:text-[#A39B92] transition-colors">
+          <div class="relative inline-flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          </div>
+          <span class="text-[10px]">Профиль</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ================================================================== -->
+    <!-- 4. МОДАЛЬНЫЕ ОКНА                                                  -->
+    <!-- ================================================================== -->
+
+    <!-- Модалка товара (PDP Modal) -->
+    <div id="pdp-modal" class="hidden fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm">
+      <div class="c-modal w-full max-w-[430px] max-h-[90vh] overflow-y-auto no-scrollbar rounded-t-3xl border-t p-5 space-y-4 shadow-2xl transition-colors duration-300">
+        <div class="flex items-center justify-between">
+          <span id="pdp-category" class="text-[10px] uppercase tracking-wider font-semibold text-[#B8683D] dark:text-[#D9875A]">Ароматическая свеча</span>
+          <button onclick="closePdpModal()" class="w-8 h-8 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center c-text-muted hover:scale-105 transition-transform">✕</button>
+        </div>
+
+        <div class="relative aspect-square rounded-2xl overflow-hidden bg-black/10 dark:bg-white/5">
+          <img id="pdp-img" src="" class="w-full h-full object-cover" alt="">
+          <!-- Оценка 4.9 в правом верхнем углу фото -->
+          <span class="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-full bg-black/65 backdrop-blur-md text-[#FBF9F5] text-xs font-bold border border-white/10 shadow-sm flex items-center gap-1 z-10">
+            <span class="text-amber-400">★</span> 4.9
+          </span>
+          <button onclick="prevPdpImg()" class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 z-10">‹</button>
+          <button onclick="nextPdpImg()" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 z-10">›</button>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between">
+            <h3 id="pdp-title" class="font-serif text-2xl font-bold c-text">Табак и Ваниль</h3>
+            <span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-bold flex items-center gap-0.5">
+              ★ 4.9
+            </span>
+          </div>
+          <p id="pdp-subtitle" class="text-xs c-text-muted mt-0.5">Тёплый камерный вечер у камина</p>
+        </div>
+
+        <div class="space-y-1.5">
+          <p class="text-xs font-semibold c-text">Объём / Формат:</p>
+          <div class="grid grid-cols-2 gap-2" id="pdp-volumes-container"></div>
+        </div>
+
+        <div id="pdp-wick-block" class="space-y-1.5">
+          <p class="text-xs font-semibold c-text">Тип фитиля:</p>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="selectPdpWick('wooden', this)" class="wick-btn p-2.5 rounded-xl border border-transparent bg-[#B8683D] dark:bg-[#D9875A] text-white text-left">
+              <p class="font-semibold text-xs">🪵 Деревянный</p>
+              <p class="text-[10px] opacity-80">Потрескивание камина</p>
+            </button>
+            <button onclick="selectPdpWick('cotton', this)" class="wick-btn p-2.5 rounded-xl border c-surface text-left c-text">
+              <p class="font-semibold text-xs">🧵 Хлопковый</p>
+              <p class="text-[10px] opacity-80">Тихое ровное пламя</p>
+            </button>
+          </div>
+        </div>
+
+        <div class="c-surface p-4 rounded-2xl border space-y-2.5">
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-[#B8683D] dark:text-[#D9875A]">Ароматическая пирамида</p>
+          <div class="grid grid-cols-3 gap-1 p-0.5 rounded-xl bg-black/5 dark:bg-white/5">
+            <button onclick="selectPyramid('top', this)" class="pyr-tab py-1.5 rounded-lg text-[10px] font-semibold c-card text-[#B8683D] dark:text-[#D9875A] shadow-xs">01 Верх</button>
+            <button onclick="selectPyramid('heart', this)" class="pyr-tab py-1.5 rounded-lg text-[10px] font-semibold c-text-muted">02 Сердце</button>
+            <button onclick="selectPyramid('base', this)" class="pyr-tab py-1.5 rounded-lg text-[10px] font-semibold c-text-muted">03 База</button>
+          </div>
+          <div class="pt-1 text-xs space-y-1">
+            <p id="pyr-time" class="font-semibold text-[#B8683D] dark:text-[#D9875A]">Первые 15 минут</p>
+            <p id="pyr-desc" class="text-[11px] c-text-muted">Первое впечатление при зажжении</p>
+            <div id="pyr-notes" class="flex flex-wrap gap-1 pt-1"></div>
+          </div>
+        </div>
+
+        <!-- РАЗДЕЛ «ОТЗЫВЫ» (ПЕРЕД КНОПКОЙ «ДОБАВИТЬ В КОРЗИНУ») -->
+        <div class="c-surface p-4 rounded-2xl border space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="flex items-center gap-2">
+                <h4 class="font-serif text-lg font-bold c-text">Отзывы покупателей</h4>
+                <span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[11px] font-bold flex items-center gap-0.5">
+                  ★ 4.9
+                </span>
+              </div>
+              <p class="text-[10px] c-text-muted mt-0.5" id="pdp-reviews-count">54 отзыва • 98% рекомендуют этот аромат</p>
+            </div>
+            <button onclick="openReviewModal()" class="px-2.5 py-1 rounded-xl bg-[#B8683D]/10 dark:bg-[#D9875A]/20 text-[#B8683D] dark:text-[#D9875A] text-[11px] font-semibold active:scale-95 transition-transform">
+              + Отзыв
+            </button>
+          </div>
+          <div id="pdp-reviews-list" class="space-y-2 max-h-48 overflow-y-auto no-scrollbar"></div>
+        </div>
+
+        <button onclick="addPdpToCart()" class="w-full py-3.5 rounded-xl bg-[#B8683D] dark:bg-[#D9875A] text-white font-semibold text-xs shadow-lg active:scale-98 transition-transform">
+          Добавить в корзину
+        </button>
+      </div>
+    </div>
+
+    <!-- Модалка СДЭК -->
+    <div id="cdek-modal" class="hidden fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm">
+      <div class="c-modal w-full max-w-[430px] max-h-[85vh] overflow-y-auto rounded-t-3xl border-t p-5 space-y-4 shadow-2xl transition-colors duration-300">
+        <div class="flex items-center justify-between">
+          <h3 class="font-serif text-xl font-bold c-text">Пункты выдачи СДЭК</h3>
+          <button onclick="closeCdekModal()" class="c-text-muted text-base">✕</button>
+        </div>
+        <input type="text" oninput="filterCdek(this.value)" placeholder="Поиск по городу (Москва, СПб, Казань)..." class="c-input w-full px-3 py-2 text-xs rounded-xl border focus:outline-none">
+        <div id="cdek-list" class="space-y-2 max-h-[50vh] overflow-y-auto"></div>
+      </div>
+    </div>
+
+    <!-- Модалка Почты России (с индексами отделений) -->
+    <div id="post-modal" class="hidden fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm">
+      <div class="c-modal w-full max-w-[430px] max-h-[85vh] overflow-y-auto rounded-t-3xl border-t p-5 space-y-4 shadow-2xl transition-colors duration-300">
+        <div class="flex items-center justify-between">
+          <h3 class="font-serif text-xl font-bold c-text">Отделения Почты России</h3>
+          <button onclick="closePostModal()" class="c-text-muted text-base">✕</button>
+        </div>
+        <input type="text" oninput="filterPost(this.value)" placeholder="Поиск по индексу или городу (101000, Казань)..." class="c-input w-full px-3 py-2 text-xs rounded-xl border focus:outline-none">
+        <div id="post-list" class="space-y-2 max-h-[50vh] overflow-y-auto"></div>
+      </div>
+    </div>
+
+    <!-- Модалка успешной оплаты -->
+    <div id="payment-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+      <div class="c-modal w-full max-w-[360px] rounded-3xl border p-6 space-y-4 shadow-2xl text-center">
+        <div class="w-14 h-14 mx-auto rounded-full bg-green-100 dark:bg-emerald-900/40 text-green-600 dark:text-emerald-400 flex items-center justify-center text-2xl font-bold">✓</div>
+        <h3 class="font-serif text-2xl font-bold c-text">Заказ оплачен!</h3>
+        <p class="text-xs c-text-muted">Заказ <b>#1049</b> принят в мастерскую. Электронный чек отправлен.</p>
+        <div class="c-surface p-3 rounded-2xl border text-left text-xs space-y-1">
+          <p class="text-[10px] c-text-muted uppercase" id="payment-track-label">Трек СДЭК:</p>
+          <p class="font-mono font-semibold text-[#B8683D] dark:text-[#D9875A]" id="order-track-num">CDEK-894120894-RU</p>
+        </div>
+        <button onclick="closePaymentModal()" class="w-full py-3 rounded-xl bg-[#B8683D] dark:bg-[#D9875A] text-white font-semibold text-xs shadow-md">
+          Перейти в профиль
+        </button>
+      </div>
+    </div>
+
+    <!-- Модалка трекинга -->
+    <div id="tracking-modal" class="hidden fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm">
+      <div class="c-modal w-full max-w-[430px] rounded-t-3xl border-t p-5 space-y-4 shadow-2xl">
+        <div class="flex items-center justify-between">
+          <h3 class="font-serif text-xl font-bold c-text">Трекинг CDEK-814920412-RU</h3>
+          <button onclick="closeTrackingModal()" class="c-text-muted text-base">✕</button>
+        </div>
+        <div class="space-y-3 py-2 text-xs">
+          <div class="flex items-center gap-3"><span class="w-4 h-4 rounded-full bg-green-600 text-white flex items-center justify-center text-[10px]">✓</span><div><p class="font-semibold c-text">Заказ оплачен и подтверждён</p><p class="text-[10px] c-text-muted">Вчера, 14:20</p></div></div>
+          <div class="flex items-center gap-3"><span class="w-4 h-4 rounded-full bg-green-600 text-white flex items-center justify-center text-[10px]">✓</span><div><p class="font-semibold c-text">Собран в мастерской Candela Home</p><p class="text-[10px] c-text-muted">Вчера, 18:45</p></div></div>
+          <div class="flex items-center gap-3"><span class="w-4 h-4 rounded-full bg-green-600 text-white flex items-center justify-center text-[10px]">✓</span><div><p class="font-semibold text-green-700 dark:text-emerald-400">Передан курьеру СДЭК в пути</p><p class="text-[10px] c-text-muted">Сегодня, 10:15</p></div></div>
+          <div class="flex items-center gap-3"><span class="w-4 h-4 rounded-full bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-300 flex items-center justify-center text-[10px]">•</span><div><p class="c-text-muted">Готов к выдаче в ПВЗ</p><p class="text-[10px] c-text-muted">Ожидается завтра</p></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модалка отзыва -->
+    <div id="review-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+      <div class="c-modal w-full max-w-[360px] rounded-3xl border p-5 space-y-4 shadow-2xl">
+        <div class="flex justify-between items-center">
+          <h3 class="font-serif text-xl font-bold c-text">Оставить отзыв</h3>
+          <button onclick="closeReviewModal()" class="c-text-muted text-base">✕</button>
+        </div>
+        <div id="review-form" class="space-y-3 text-xs">
+          <div>
+            <label class="block text-[11px] font-semibold mb-1 c-text">Ваша оценка:</label>
+            <div class="text-amber-500 text-xl cursor-pointer">★★★★★</div>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold mb-1 c-text">Ваш отзыв:</label>
+            <textarea id="review-textarea" placeholder="Расскажите о стойкости, фитиле и впечатлениях..." class="c-input w-full h-20 p-2 text-xs rounded-xl border focus:outline-none"></textarea>
+          </div>
+          <button onclick="submitReviewReward()" class="w-full py-3 rounded-xl bg-[#B8683D] dark:bg-[#D9875A] text-white font-semibold text-xs shadow-md">
+            Отправить и получить +150 бонусов
+          </button>
+        </div>
+        <div id="review-success" class="hidden py-6 text-center space-y-1">
+          <div class="text-3xl text-green-600 dark:text-emerald-400">✓</div>
+          <h4 class="font-serif text-lg font-bold c-text">Спасибо за отзыв!</h4>
+          <p class="text-xs text-[#B8683D] dark:text-[#D9875A] font-semibold">+150 бонусов зачислено на ваш баланс</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- 5. ЛОГИКА И СОСТОЯНИЕ (JAVASCRIPT)                                 -->
+  <!-- ================================================================== -->
+  <script>
+    // Товарная матрица
+    const PRODUCTS = [
+      {
+        id: 'tobacco-vanilla',
+        title: 'Табак и Ваниль',
+        subtitle: 'Тёплый камерный вечер у камина',
+        category: 'candles',
+        categoryLabel: 'Ароматическая свеча',
+        cardStyle: 'A',
+        badge: 'Хит сезона',
+        rating: 4.9,
+        reviewsCount: 68,
+        topReview: 'Потрескивание вишневого фитиля создает магию загородного дома',
+        topAuthor: 'Екатерина В.',
+        reviews: [
+          { author: 'Екатерина В.', date: 'Вчера', rating: 5, verified: true, text: 'Потрескивание вишневого фитиля создает магию загородного дома. Свеча не коптит, аромат благородного табака и теплой ванили окутывает всю гостиную. Заказываю уже третий раз!' },
+          { author: 'Артем Д.', date: '3 дня назад', rating: 5, verified: true, text: 'Аромат держится в комнате даже на следующий день после того, как погасил. Качество на уровне Le Labo и Diptyque.' }
+        ],
+        basePrice: 1890,
+        volumes: [
+          { label: '100 мл', delta: 0, burn: 'до 25 часов' },
+          { label: '250 мл', delta: 650, burn: 'до 45 часов' }
+        ],
+        selectedVolIndex: 0,
+        wick: 'wooden',
+        notes: [{icon:'🍂', label:'Табачный лист'}, {icon:'🍦', label:'Бурбонская ваниль'}],
+        pyramid: {
+          top: { time: 'Первые 15 минут', desc: 'Пряный лист дорогого табака, гвоздика', notes: ['Табак', 'Гвоздика', 'Розовый перец'] },
+          heart: { time: '2–4 часа горения', desc: 'Глубокий стручок бурбонской ванили и бобы тонка', notes: ['Ваниль', 'Бобы тонка', 'Какао'] },
+          base: { time: 'Шлейф до 8 часов', desc: 'Благородный кедр, сухофрукты и золотистая амбра', notes: ['Кедр', 'Амбра', 'Сухофрукты'] }
+        },
+        images: [
+          'https://images.unsplash.com/photo-1603006905003-be475563bc59?auto=format&fit=crop&w=700&q=85',
+          'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?auto=format&fit=crop&w=700&q=85'
+        ]
+      },
+      {
+        id: 'wild-fig-orchid',
+        title: 'Дикий Инжир и Белая Орхидея',
+        subtitle: 'Средиземноморский сад после тёплого дождя',
+        category: 'diffusers',
+        categoryLabel: 'Ароматический диффузор',
+        cardStyle: 'B',
+        badge: '✨ Масла из Граса',
+        rating: 4.9,
+        reviewsCount: 52,
+        topReview: 'Аромат свежести спелого инжира после дождя, очень тонкий',
+        topAuthor: 'Мария П.',
+        reviews: [
+          { author: 'Мария П.', date: '2 дня назад', rating: 5, verified: true, text: 'Диффузор стоит уже второй месяц в спальне — палочки из ротанга отлично отдают аромат. Нет никакой химозности, только натуральные масла из Граса.' },
+          { author: 'Ольга К.', date: 'Неделю назад', rating: 5, verified: true, text: 'Дикий инжир с орхидеей — любовь с первого вдоха. Очень красивая стеклянная бутылочка, украшает туалетный столик.' }
+        ],
+        basePrice: 2400,
+        volumes: [
+          { label: '100 мл', delta: 0, burn: 'до 4 месяцев' },
+          { label: '250 мл', delta: 900, burn: 'до 7 месяцев' }
+        ],
+        selectedVolIndex: 0,
+        wick: null,
+        notes: [{icon:'🫐', label:'Спелый инжир'}, {icon:'🌸', label:'Белая орхидея'}],
+        pyramid: {
+          top: { time: '15 минут', desc: 'Свежая зелень инжирного листа и бергамот', notes: ['Лист инжира', 'Бергамот'] },
+          heart: { time: 'Сердце 4 мес.', desc: 'Мякоть тёмного инжира и жасмин', notes: ['Мякоть инжира', 'Орхидея'] },
+          base: { time: 'Шлейф', desc: 'Сливочный сантал и белый кедр', notes: ['Сантал', 'Кедр'] }
+        },
+        images: [
+          'https://images.unsplash.com/photo-1615397349754-cfa2066a298e?auto=format&fit=crop&w=700&q=85',
+          'https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=700&q=85'
+        ]
+      },
+      {
+        id: 'amber-sandstone-cedar',
+        title: 'Янтарная Смола и Дикий Кедр',
+        subtitle: 'Медитативная тишина северного леса',
+        category: 'candles',
+        categoryLabel: 'Свеча в янтарном стекле',
+        cardStyle: 'B',
+        badge: '🪵 Деревянный фитиль',
+        rating: 4.9,
+        reviewsCount: 44,
+        topReview: 'Идеально для медитации и вечернего чтения, глубокий смолистый кедр',
+        topAuthor: 'Дмитрий С.',
+        reviews: [
+          { author: 'Дмитрий С.', date: 'Вчера', rating: 5, verified: true, text: 'Идеально для медитации и вечернего чтения. Смолистый северный кедр и янтарная амбра успокаивают после насыщенного дня.' },
+          { author: 'Светлана Р.', date: '5 дней назад', rating: 5, verified: true, text: 'Янтарное стекло дает потрясающий теплый мягкий свет. Фитиль потрескивает очень уютно.' }
+        ],
+        basePrice: 2190,
+        volumes: [
+          { label: '100 мл', delta: 0, burn: 'до 28 часов' },
+          { label: '250 мл', delta: 700, burn: 'до 50 часов' }
+        ],
+        selectedVolIndex: 0,
+        wick: 'wooden',
+        notes: [{icon:'🍯', label:'Янтарная амбра'}, {icon:'🌲', label:'Атласский кедр'}],
+        pyramid: {
+          top: { time: '15 минут', desc: 'Хвоя сибирской пихты и кардамон', notes: ['Пихта', 'Кардамон'] },
+          heart: { time: '2–4 часа', desc: 'Балтийская смолистая амбра', notes: ['Амбра', 'Кедр'] },
+          base: { time: 'Шлейф', desc: 'Дубовый мох и ветивер', notes: ['Мох', 'Ветивер'] }
+        },
+        images: [
+          'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?auto=format&fit=crop&w=700&q=85'
+        ]
+      },
+      {
+        id: 'sachet-lavender-eucalyptus',
+        title: 'Ботаническое саше «Лаванда»',
+        subtitle: 'Аромат чистоты для гардеробной и белья',
+        category: 'sachets',
+        categoryLabel: 'Восковое саше',
+        cardStyle: 'A',
+        badge: 'Ручная работа',
+        rating: 4.9,
+        reviewsCount: 76,
+        topReview: 'Положила в гардеробную — вся одежда пахнет прованским утром',
+        topAuthor: 'Анна Л.',
+        reviews: [
+          { author: 'Анна Л.', date: '3 дня назад', rating: 5, verified: true, text: 'Положила в гардеробную с кашемиром и льном — вся одежда пахнет свежестью прованского утра. Натуральные сухоцветы лаванды в воске выглядят как произведение искусства.' },
+          { author: 'Полина М.', date: 'Неделю назад', rating: 5, verified: true, text: 'Прекрасный подарок коллегам. Воск очень качественный, не оставляет следов на ткани.' }
+        ],
+        basePrice: 790,
+        volumes: [{ label: '1 шт', delta: 0, burn: 'до 3 месяцев' }],
+        selectedVolIndex: 0,
+        wick: null,
+        notes: [{icon:'🌿', label:'Лаванда'}, {icon:'🍃', label:'Эвкалипт'}],
+        pyramid: {
+          top: { time: 'Свежесть', desc: 'Бриз эвкалипта и мяты', notes: ['Эвкалипт', 'Мята'] },
+          heart: { time: 'Сердце', desc: 'Поля прованской лаванды', notes: ['Лаванда'] },
+          base: { time: 'Шлейф', desc: 'Белый хлопок и мускус', notes: ['Хлопок', 'Мускус'] }
+        },
+        images: [
+          'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=700&q=85'
+        ]
+      },
+      {
+        id: 'bergamot-jasmine-amber',
+        title: 'Сет «Алхимия Граса №04»',
+        subtitle: 'Подарочный дуэт: свеча 250 мл + диффузор 100 мл',
+        category: 'sets',
+        categoryLabel: 'Подарочный набор',
+        cardStyle: 'C',
+        badge: 'Лимитированный выпуск',
+        rating: 4.9,
+        reviewsCount: 39,
+        topReview: 'Роскошная подарочная упаковка с шелковой лентой, восторг',
+        topAuthor: 'Виктория Т.',
+        reviews: [
+          { author: 'Виктория Т.', date: 'Вчера', rating: 5, verified: true, text: 'Роскошная подарочная упаковка с шелковой лентой, аромат искрящегося бергамота с медовым жасмином. Получатель подарка был в полном восторге!' },
+          { author: 'Игорь В.', date: '4 дня назад', rating: 5, verified: true, text: 'Сет стоит каждого рубля. И свеча, и диффузор в единой ольфакторной концепции.' }
+        ],
+        basePrice: 4490,
+        volumes: [{ label: 'Подарочный бокс', delta: 0, burn: 'Ритуал 4 мес.' }],
+        selectedVolIndex: 0,
+        wick: 'wooden',
+        notes: [{icon:'🍊', label:'Бергамот'}, {icon:'🌼', label:'Жасмин'}, {icon:'🪵', label:'Янтарь'}],
+        pyramid: {
+          top: { time: '01 Топ', desc: 'Искрящиеся цитрусы Граса', notes: ['Бергамот', 'Апельсин'] },
+          heart: { time: '02 Сердце', desc: 'Белые медовые цветы', notes: ['Жасмин', 'Османтус'] },
+          base: { time: '03 Шлейф', desc: 'Золотистая амбра и сандал', notes: ['Амбра', 'Сандал'] }
+        },
+        images: [
+          'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=700&q=85'
+        ]
+      }
+    ];
+
+    // Пункты выдачи СДЭК
+    const CDEK_POINTS = [
+      { id: 'c1', city: 'Москва', address: 'ул. Малая Бронная, 22', eta: 'Завтра' },
+      { id: 'c2', city: 'Москва', address: 'Большой Патриарший пер., 8', eta: 'Завтра' },
+      { id: 'c3', city: 'Санкт-Петербург', address: 'Большой пр. П.С., 58', eta: '2 дня' },
+      { id: 'c4', city: 'Казань', address: 'ул. Баумана, 29', eta: '2 дня' },
+      { id: 'c5', city: 'Екатеринбург', address: 'ул. Малышева, 42', eta: '3 дня' }
+    ];
+
+    // Отделения Почты России (с индексами)
+    const POST_POINTS = [
+      { id: 'p1', index: '101000', city: 'Москва', address: 'ул. Мясницкая, 26 (Главпочтамт)', eta: '2 дня' },
+      { id: 'p2', index: '123001', city: 'Москва', address: 'Трехпрудный пер., 9', eta: '2 дня' },
+      { id: 'p3', index: '190000', city: 'Санкт-Петербург', address: 'ул. Почтамтская, 9', eta: '2-3 дня' },
+      { id: 'p4', index: '420000', city: 'Казань', address: 'ул. Кремлёвская, 8', eta: '3 дня' },
+      { id: 'p5', index: '620000', city: 'Екатеринбург', address: 'пр. Ленина, 39', eta: '3-4 дня' }
+    ];
+
+    // Состояние
+    let currentCategory = 'all';
+    let cart = [
+      { productId: 'tobacco-vanilla', volume: '100 мл', price: 1890, qty: 1 }
+    ];
+    let bonusBalance = 620;
+    let useBonuses = true;
+    let deliveryMethod = 'cdek';
+    let deliveryCost = 290;
+    let selectedCdek = CDEK_POINTS[0];
+    let selectedPost = POST_POINTS[0];
+    let selectedPdpProduct = null;
+    let pdpImgIdx = 0;
+    let pdpSelectedVol = 0;
+    let pdpSelectedWick = 'wooden';
+    let quizStep = 0;
+    let quizUserChoices = {};
+    let darkMode = false;
+
+    function init() {
+      renderProducts();
+      renderCart();
+      renderCdekList();
+      renderPostList();
+      renderQuiz();
+      startReservationTimer();
+    }
+
+    // Центрированный SVG-плюсик
+    const PLUS_SVG = `
+      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+    `;
+
+    // Рендер каталога
+    function renderProducts(query = '') {
+      const grid = document.getElementById('product-grid');
+      grid.innerHTML = '';
+
+      const filtered = PRODUCTS.filter(p => {
+        const catMatch = currentCategory === 'all' || p.category === currentCategory;
+        const q = query.trim().toLowerCase();
+        const qMatch = !q || p.title.toLowerCase().includes(q) || p.subtitle.toLowerCase().includes(q) || p.notes.some(n => n.label.toLowerCase().includes(q));
+        return catMatch && qMatch;
+      });
+
+      document.getElementById('product-counter').innerText = `${filtered.length} товаров`;
+
+      filtered.forEach(p => {
+        const card = document.createElement('div');
+        const currentPrice = p.basePrice + p.volumes[p.selectedVolIndex].delta;
+
+        if (p.cardStyle === 'C') {
+          card.className = "col-span-2 rounded-3xl border c-surface overflow-hidden cursor-pointer hover:shadow-lg transition-all";
+          card.innerHTML = `
+            <div class="relative aspect-[16/9] w-full" onclick="openPdp('${p.id}')">
+              <img src="${p.images[0]}" class="w-full h-full object-cover">
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+              <span class="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full text-[9px] uppercase tracking-widest bg-black/60 text-[#D9875A] font-semibold backdrop-blur-md border border-white/10 shadow-xs">${p.badge}</span>
+              <!-- Оценка 4.9 в правом верхнем углу фото -->
+              <span class="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-full text-xs font-bold bg-black/65 backdrop-blur-md text-[#FBF9F5] border border-white/10 shadow-sm flex items-center gap-1 z-10">
+                <span class="text-amber-400">★</span> ${p.rating || '4.9'}
+              </span>
+              <div class="absolute bottom-3 left-4 right-4 flex items-end justify-between text-white">
+                <div>
+                  <span class="text-[9px] uppercase tracking-widest text-[#D9875A] font-semibold">Лимитированный сет</span>
+                  <h3 class="font-serif text-lg font-semibold text-white">${p.title}</h3>
+                </div>
+              </div>
+            </div>
+            <!-- Раздел Отзывы перед кнопкой добавления в корзину -->
+            <div class="px-4 py-2 border-t c-border bg-black/5 dark:bg-white/5 flex items-center justify-between" onclick="openPdp('${p.id}')">
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <span class="font-bold text-xs text-amber-500">★ ${p.rating || '4.9'}</span>
+                  <span class="text-[11px] c-text-muted font-medium">(${p.reviewsCount} отзывов)</span>
+                  <span class="text-[10px] text-green-700 dark:text-emerald-400 font-semibold">• 98% советуют</span>
+                </div>
+                <p class="text-[10px] c-text-muted italic mt-0.5 line-clamp-1">«${p.topReview}» — ${p.topAuthor}</p>
+              </div>
+              <span class="text-xs text-[#B8683D] dark:text-[#D9875A] font-semibold">Отзывы →</span>
+            </div>
+            <div class="p-3 flex items-center justify-between">
+              <span class="font-bold text-sm c-text">${currentPrice} ₽</span>
+              <button onclick="addToCart('${p.id}')" class="px-3.5 py-1.5 rounded-xl bg-[#B8683D] dark:bg-[#D9875A] text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition-transform">
+                ${PLUS_SVG}
+                <span>В корзину</span>
+              </button>
+            </div>
+          `;
+        } else if (p.cardStyle === 'B') {
+          card.className = "rounded-2xl p-3 border c-surface flex flex-col justify-between hover:shadow-md cursor-pointer transition-all";
+          card.innerHTML = `
+            <div onclick="openPdp('${p.id}')">
+              <div class="relative aspect-[4/5] rounded-xl overflow-hidden mb-2">
+                <img src="${p.images[0]}" class="w-full h-full object-cover">
+                <span class="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-full text-[9px] bg-black/75 text-white font-medium">${p.badge}</span>
+                <!-- Оценка 4.9 в правом верхнем углу фото -->
+                <span class="absolute top-1.5 right-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-black/65 backdrop-blur-md text-[#FBF9F5] border border-white/10 shadow-xs flex items-center gap-0.5 z-10">
+                  <span class="text-amber-400">★</span> ${p.rating || '4.9'}
+                </span>
+              </div>
+              <h3 class="font-serif font-semibold text-sm leading-tight c-text">${p.title}</h3>
+              <p class="text-[10px] c-text-muted line-clamp-1 mb-2">${p.subtitle}</p>
+            </div>
+            <div class="space-y-2 pt-1 border-t c-border">
+              <div class="grid grid-cols-2 gap-1 p-0.5 rounded-lg border c-card">
+                ${p.volumes.map((v, i) => `
+                  <button onclick="changeCardVolume('${p.id}', ${i}, event)" class="py-0.5 rounded text-[9px] font-semibold text-center ${i === p.selectedVolIndex ? 'bg-[#3A4436] dark:bg-[#43523E] text-white' : 'c-text-muted'}">${v.label}</button>
+                `).join('')}
+              </div>
+              <!-- Раздел Отзывы перед кнопкой добавления в корзину -->
+              <div class="pt-1 border-t c-border" onclick="openPdp('${p.id}')">
+                <div class="flex items-center justify-between text-[10px] mb-0.5">
+                  <span class="font-bold text-amber-500 flex items-center gap-0.5">★ ${p.rating || '4.9'} <span class="c-text-muted font-normal">(${p.reviewsCount})</span></span>
+                  <span class="text-[9px] text-[#B8683D] dark:text-[#D9875A] font-medium">Отзывы →</span>
+                </div>
+                <p class="text-[9px] c-text-muted italic line-clamp-1">«${p.topReview}»</p>
+              </div>
+              <button onclick="addToCart('${p.id}')" class="w-full py-1.5 rounded-xl bg-[#B8683D] dark:bg-[#D9875A] text-white text-[11px] font-semibold flex items-center justify-center gap-1.5 shadow-xs active:scale-95 transition-transform">
+                ${PLUS_SVG}
+                <span>${currentPrice} ₽</span>
+              </button>
+            </div>
+          `;
+        } else {
+          card.className = "rounded-2xl p-3 border c-card flex flex-col justify-between hover:shadow-md cursor-pointer transition-all";
+          card.innerHTML = `
+            <div onclick="openPdp('${p.id}')">
+              <div class="relative aspect-square rounded-xl overflow-hidden mb-2">
+                <img src="${p.images[0]}" class="w-full h-full object-cover">
+                <span class="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-full text-[9px] bg-[#B8683D] dark:bg-[#D9875A] text-white font-semibold">${p.badge}</span>
+                <!-- Оценка 4.9 в правом верхнем углу фото -->
+                <span class="absolute top-1.5 right-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-black/65 backdrop-blur-md text-[#FBF9F5] border border-white/10 shadow-xs flex items-center gap-0.5 z-10">
+                  <span class="text-amber-400">★</span> ${p.rating || '4.9'}
+                </span>
+              </div>
+              <h3 class="font-serif font-semibold text-sm leading-tight c-text">${p.title}</h3>
+              <p class="text-[10px] c-text-muted mb-1.5">${p.categoryLabel}</p>
+              <div class="flex flex-wrap gap-1 mb-2">
+                ${p.notes.map(n => `<span class="px-1.5 py-0.5 rounded text-[9px] c-surface border c-text">${n.icon} ${n.label}</span>`).join('')}
+              </div>
+            </div>
+            <!-- Раздел Отзывы перед кнопкой добавления в корзину -->
+            <div class="mb-2 pt-1 border-t c-border" onclick="openPdp('${p.id}')">
+              <div class="flex items-center justify-between text-[10px]">
+                <span class="font-bold text-amber-500 flex items-center gap-0.5">★ ${p.rating || '4.9'} <span class="c-text-muted font-normal">(${p.reviewsCount})</span></span>
+                <span class="text-[9px] text-[#B8683D] dark:text-[#D9875A] font-medium">Отзывы →</span>
+              </div>
+              <p class="text-[9px] c-text-muted italic line-clamp-1 mt-0.5">«${p.topReview}»</p>
+            </div>
+            <div class="pt-1.5 border-t c-border flex items-center justify-between">
+              <span class="font-bold text-xs c-text">${currentPrice} ₽</span>
+              <!-- Выровненная кнопка с плюсом по центру -->
+              <button onclick="addToCart('${p.id}')" class="w-7 h-7 rounded-xl bg-[#B8683D] dark:bg-[#D9875A] text-white flex items-center justify-center active:scale-90 transition-transform shadow-xs">
+                ${PLUS_SVG}
+              </button>
+            </div>
+          `;
+        }
+        grid.appendChild(card);
+      });
+    }
+
+    function changeCardVolume(productId, volIdx, e) {
+      e.stopPropagation();
+      const p = PRODUCTS.find(x => x.id === productId);
+      if (p) {
+        p.selectedVolIndex = volIdx;
+        showHaptic(`Выбран объём ${p.volumes[volIdx].label}`);
+        renderProducts();
+      }
+    }
+
+    function addToCart(productId) {
+      const p = PRODUCTS.find(x => x.id === productId);
+      if (!p) return;
+      const vol = p.volumes[p.selectedVolIndex];
+      const price = p.basePrice + vol.delta;
+      
+      const existing = cart.find(c => c.productId === productId && c.volume === vol.label);
+      if (existing) {
+        existing.qty++;
+      } else {
+        cart.push({ productId, volume: vol.label, price, qty: 1 });
+      }
+
+      showHaptic(`В корзине: ${p.title} (${vol.label})`);
+      updateCartBadges();
+      renderCart();
+    }
+
+    function updateCartBadges() {
+      const totalCount = cart.reduce((acc, i) => acc + i.qty, 0);
+      const headerBadge = document.getElementById('header-cart-badge');
+      const navBadge = document.getElementById('nav-cart-badge');
+      
+      headerBadge.innerText = totalCount;
+      navBadge.innerText = totalCount;
+      
+      headerBadge.style.display = totalCount > 0 ? 'flex' : 'none';
+      navBadge.style.display = totalCount > 0 ? 'flex' : 'none';
+    }
+
+    function renderCart() {
+      const list = document.getElementById('cart-items-list');
+      list.innerHTML = '';
+
+      if (cart.length === 0) {
+        list.innerHTML = `<p class="py-8 text-center text-xs c-text-muted">Корзина пуста. Выберите аромат в каталоге!</p>`;
+      }
+
+      let subtotal = 0;
+      cart.forEach((item, index) => {
+        const prod = PRODUCTS.find(p => p.id === item.productId);
+        const lineTotal = item.price * item.qty;
+        subtotal += lineTotal;
+
+        const row = document.createElement('div');
+        row.className = "p-3 rounded-2xl border c-surface flex gap-3 items-center transition-colors duration-300";
+        row.innerHTML = `
+          <img src="${prod.images[0]}" class="w-14 h-14 rounded-xl object-cover shrink-0">
+          <div class="flex-1 min-w-0">
+            <h4 class="font-serif font-semibold text-xs truncate c-text">${prod.title}</h4>
+            <p class="text-[10px] c-text-muted">${item.volume}</p>
+            <div class="flex items-center justify-between pt-1">
+              <span class="font-bold text-xs c-text">${lineTotal} ₽</span>
+              <div class="flex items-center gap-2 border c-border rounded-lg px-2 py-0.5 c-card">
+                <button onclick="changeQty(${index}, -1)" class="text-xs font-bold c-text hover:text-[#B8683D] dark:hover:text-[#D9875A]">-</button>
+                <span class="text-xs font-semibold c-text">${item.qty}</span>
+                <button onclick="changeQty(${index}, 1)" class="text-xs font-bold c-text hover:text-[#B8683D] dark:hover:text-[#D9875A]">+</button>
+              </div>
+            </div>
+          </div>
+        `;
+        list.appendChild(row);
+      });
+
+      const maxBonus = Math.min(bonusBalance, subtotal);
+      const bonusDiscount = useBonuses ? maxBonus : 0;
+      const total = Math.max(0, subtotal - bonusDiscount + deliveryCost);
+      const cashback = Math.round(total * 0.1);
+
+      document.getElementById('summary-count').innerText = cart.reduce((a, b) => a + b.qty, 0);
+      document.getElementById('summary-subtotal').innerText = `${subtotal} ₽`;
+      document.getElementById('summary-bonus-row').style.display = useBonuses ? 'flex' : 'none';
+      document.getElementById('summary-bonus-val').innerText = `-${bonusDiscount} ₽`;
+      document.getElementById('summary-delivery').innerText = `${deliveryCost} ₽`;
+      document.getElementById('summary-total').innerText = `${total} ₽`;
+      document.getElementById('summary-cashback').innerText = cashback;
+    }
+
+    function changeQty(index, delta) {
+      cart[index].qty += delta;
+      if (cart[index].qty <= 0) cart.splice(index, 1);
+      updateCartBadges();
+      renderCart();
+      showHaptic('Количество обновлено');
+    }
+
+    function toggleBonusUse(checked) {
+      useBonuses = checked;
+      renderCart();
+      showHaptic(checked ? 'Бонусы применены' : 'Бонусы отключены');
+    }
+
+    // Доставка: СДЭК / Курьер / Почта
+    function setDelivery(method, btn) {
+      deliveryMethod = method;
+      document.querySelectorAll('.delivery-btn').forEach(b => {
+        b.className = "delivery-btn p-2 rounded-xl border c-card c-text text-center shadow-xs transition-colors";
+      });
+      btn.className = "delivery-btn p-2 rounded-xl border border-transparent bg-[#B8683D] dark:bg-[#D9875A] text-white text-center shadow-xs transition-colors";
+      
+      const cdekBlock = document.getElementById('cdek-point-block');
+      const postBlock = document.getElementById('post-point-block');
+      const courierBlock = document.getElementById('courier-fields-block');
+
+      cdekBlock.classList.add('hidden');
+      postBlock.classList.add('hidden');
+      courierBlock.classList.add('hidden');
+
+      if (method === 'cdek') {
+        deliveryCost = 290;
+        cdekBlock.classList.remove('hidden');
+      } else if (method === 'courier') {
+        deliveryCost = 490;
+        courierBlock.classList.remove('hidden');
+      } else if (method === 'post') {
+        deliveryCost = 250;
+        postBlock.classList.remove('hidden');
+      }
+
+      renderCart();
+      showHaptic(`Доставка: ${method === 'cdek' ? 'СДЭК ПВЗ' : method === 'courier' ? 'Курьер до двери' : 'Почта России'}`);
+    }
+
+    // СДЭК Модалка
+    function openCdekModal() {
+      document.getElementById('cdek-modal').classList.remove('hidden');
+    }
+    function closeCdekModal() {
+      document.getElementById('cdek-modal').classList.add('hidden');
+    }
+    function renderCdekList(filter = '') {
+      const container = document.getElementById('cdek-list');
+      container.innerHTML = CDEK_POINTS.filter(p => p.city.toLowerCase().includes(filter.toLowerCase()) || p.address.toLowerCase().includes(filter.toLowerCase()))
+        .map(p => `
+          <div onclick="selectCdek('${p.id}')" class="p-3 rounded-xl border ${selectedCdek.id === p.id ? 'border-[#B8683D] dark:border-[#D9875A] c-surface' : 'c-card'} cursor-pointer hover:border-[#B8683D] dark:hover:border-[#D9875A] transition-colors">
+            <p class="text-xs font-semibold c-text">${p.city}, ${p.address}</p>
+            <p class="text-[10px] c-text-muted">Срок доставки: ${p.eta}</p>
+          </div>
+        `).join('');
+    }
+    function filterCdek(val) { renderCdekList(val); }
+    function selectCdek(id) {
+      selectedCdek = CDEK_POINTS.find(p => p.id === id);
+      document.getElementById('selected-cdek-address').innerText = `${selectedCdek.city}, ${selectedCdek.address}`;
+      closeCdekModal();
+      showHaptic('ПВЗ СДЭК выбран');
+    }
+
+    // Почта России Модалка
+    function openPostModal() {
+      document.getElementById('post-modal').classList.remove('hidden');
+    }
+    function closePostModal() {
+      document.getElementById('post-modal').classList.add('hidden');
+    }
+    function renderPostList(filter = '') {
+      const container = document.getElementById('post-list');
+      container.innerHTML = POST_POINTS.filter(p => p.index.includes(filter) || p.city.toLowerCase().includes(filter.toLowerCase()) || p.address.toLowerCase().includes(filter.toLowerCase()))
+        .map(p => `
+          <div onclick="selectPost('${p.id}')" class="p-3 rounded-xl border ${selectedPost.id === p.id ? 'border-[#B8683D] dark:border-[#D9875A] c-surface' : 'c-card'} cursor-pointer hover:border-[#B8683D] dark:hover:border-[#D9875A] transition-colors">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-xs text-[#B8683D] dark:text-[#D9875A]">${p.index}</span>
+              <span class="text-[10px] c-text-muted">${p.eta}</span>
+            </div>
+            <p class="text-xs font-semibold mt-0.5 c-text">${p.city}, ${p.address}</p>
+          </div>
+        `).join('');
+    }
+    function filterPost(val) { renderPostList(val); }
+    function selectPost(id) {
+      selectedPost = POST_POINTS.find(p => p.id === id);
+      document.getElementById('selected-post-address').innerText = `${selectedPost.index}, ${selectedPost.city}, ${selectedPost.address}`;
+      closePostModal();
+      showHaptic('Отделение Почты выбрано');
+    }
+
+    // РАСШИРЕННЫЙ КВИЗ АРОМА-СОМЕЛЬЕ 2.0 (6 состояний, 6 комнат, 6 групп нот)
+    const EXPANDED_QUIZ = [
+      {
+        stepName: 'Состояние',
+        q: 'Какое состояние вы хотите создать в доме?',
+        sub: 'Выберите главную эмоцию и атмосферу',
+        opts: [
+          { icon: '🔥', title: 'Уютный вечер у камина', sub: 'Тепло, плед, камерность, мерцание огня', match: 'tobacco-vanilla' },
+          { icon: '🌿', title: 'Свежесть утреннего сада', sub: 'Солнечный свет, роса, спелый средиземноморский инжир', match: 'wild-fig-orchid' },
+          { icon: '🧘‍♀️', title: 'Медитация и фокус (Дзен)', sub: 'Тишина северного леса, кедр, хвоя и смола', match: 'amber-sandstone-cedar' },
+          { icon: '🛁', title: 'Глубокий релакс и антистресс', sub: 'Французская лаванда, очищение мыслей и спокойный сон', match: 'sachet-lavender-eucalyptus' },
+          { icon: '🥂', title: 'Праздник и романтика', sub: 'Искрящиеся цитрусы, белые медовые цветы и амбра', match: 'bergamot-jasmine-amber' },
+          { icon: '⚡', title: 'Энергия, тонус и бодрость', sub: 'Калабрийский бергамот, нероли и чистый воздух', match: 'bergamot-jasmine-amber' }
+        ]
+      },
+      {
+        stepName: 'Пространство',
+        q: 'В каком пространстве будет жить аромат?',
+        sub: 'Мы точно подберём площадь диффузии и раскрытие',
+        opts: [
+          { icon: '🛋', title: 'Гостиная или просторная студия', sub: 'Объёмное глубокое звучание до 40–50 м²' },
+          { icon: '🛏', title: 'Спальня или зона отдыха', sub: 'Мягкий деликатный шлейф без приторности' },
+          { icon: '💻', title: 'Кабинет или рабочая зона', sub: 'Свежесть, концентрация внимания, чистый ум' },
+          { icon: '🛁', title: 'Ванная комната или СПА-зона', sub: 'Влажный тёплый воздух, очищение и покой' },
+          { icon: '🚪', title: 'Прихожая или гардеробная', sub: 'Встречающий аромат дома, свежесть текстиля' },
+          { icon: '🍳', title: 'Кухня или столовая зона', sub: 'Устранение кухонных запахов, аппетитный шлейф' }
+        ]
+      },
+      {
+        stepName: 'Группа нот',
+        q: 'Какая парфюмерная группа откликается вам сильнее?',
+        sub: 'Финальный штрих персональной композиции из Граса',
+        opts: [
+          { icon: '🍂', title: 'Пряные и гурманские', sub: 'Лист табака, бурбонская ваниль, бобы тонка, какао', match: 'tobacco-vanilla' },
+          { icon: '🫐', title: 'Зелёные и фруктовые', sub: 'Лист инжира, белая орхидея, сандал, свежий персик', match: 'wild-fig-orchid' },
+          { icon: '🌲', title: 'Древесные и смолистые', sub: 'Атласский кедр, балтийская амбра, дубовый мох, ветивер', match: 'amber-sandstone-cedar' },
+          { icon: '🌿', title: 'Травяные и лавандовые', sub: 'Прованская лаванда, сибирский эвкалипт, мята, хлопок', match: 'sachet-lavender-eucalyptus' },
+          { icon: '🍊', title: 'Искрящиеся цитрусовые', sub: 'Бергамот, красный сицилийский апельсин, нероли', match: 'bergamot-jasmine-amber' },
+          { icon: '🌸', title: 'Цветочно-медовые', sub: 'Жасмин самбак, османтус, цветы магнолии', match: 'bergamot-jasmine-amber' }
+        ]
+      }
+    ];
+
+    function renderQuiz() {
+      const container = document.getElementById('quiz-container');
+
+      if (quizStep < 3) {
+        const stepData = EXPANDED_QUIZ[quizStep];
+        document.getElementById('quiz-step-label').innerText = `${stepData.stepName} (${quizStep + 1}/3)`;
+        container.innerHTML = `
+          <div>
+            <h3 class="font-serif text-xl font-medium mb-1 c-text">${stepData.q}</h3>
+            <p class="text-xs c-text-muted">${stepData.sub}</p>
+          </div>
+          <div class="space-y-2 pt-1 max-h-[55vh] overflow-y-auto no-scrollbar">
+            ${stepData.opts.map((opt, i) => `
+              <button onclick="handleQuizAnswer('${opt.match || 'wild-fig-orchid'}', '${opt.title}')" class="w-full text-left p-3 rounded-2xl border c-card flex items-center justify-between hover:border-[#B8683D] dark:hover:border-[#D9875A] active:scale-98 transition-all">
+                <div class="flex items-center gap-3">
+                  <span class="text-2xl">${opt.icon}</span>
+                  <div>
+                    <p class="font-semibold text-xs leading-snug c-text">${opt.title}</p>
+                    <p class="text-[10px] c-text-muted">${opt.sub}</p>
+                  </div>
+                </div>
+                <span class="text-[#B8683D] dark:text-[#D9875A] font-bold text-sm">→</span>
+              </button>
+            `).join('')}
+          </div>
+        `;
+      } else {
+        const targetId = quizUserChoices[2] || quizUserChoices[0] || 'wild-fig-orchid';
+        const matchProduct = PRODUCTS.find(p => p.id === targetId) || PRODUCTS[1];
+
+        document.getElementById('quiz-step-label').innerText = `Готово!`;
+        container.innerHTML = `
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] bg-green-100 dark:bg-emerald-900/40 text-green-700 dark:text-emerald-400 font-semibold">✦ Совпадение 98%</span>
+              <span class="text-[10px] c-text-muted">Масла из Граса</span>
+            </div>
+            <div class="aspect-video rounded-2xl overflow-hidden relative">
+              <img src="${matchProduct.images[0]}" class="w-full h-full object-cover">
+              <span class="absolute bottom-2 left-2 px-2 py-0.5 rounded-full bg-black/60 text-white text-[10px] font-medium backdrop-blur-md">${matchProduct.categoryLabel}</span>
+            </div>
+            <div>
+              <h3 class="font-serif text-2xl font-bold c-text">${matchProduct.title}</h3>
+              <p class="text-xs c-text-muted mt-0.5">${matchProduct.subtitle}</p>
+            </div>
+            <div class="p-2.5 rounded-xl border c-card text-xs space-y-1">
+              <p class="text-[10px] font-semibold text-[#B8683D] dark:text-[#D9875A] uppercase">Ключевые ноты формулы:</p>
+              <div class="flex flex-wrap gap-1">
+                ${matchProduct.notes.map(n => `<span class="px-2 py-0.5 rounded-md c-surface c-text text-[10px] font-medium">${n.icon} ${n.label}</span>`).join('')}
+              </div>
+            </div>
+            <div class="flex gap-2 pt-1">
+              <button onclick="addToCart('${matchProduct.id}'); switchTab('cart');" class="flex-1 py-3 rounded-xl bg-[#B8683D] dark:bg-[#D9875A] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-sm">
+                <span>В корзину • ${matchProduct.basePrice} ₽</span>
+              </button>
+              <button onclick="quizStep=0; quizUserChoices={}; renderQuiz();" class="px-3.5 py-3 rounded-xl border c-card c-text text-xs font-semibold">
+                Заново
+              </button>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function handleQuizAnswer(matchId, choiceTitle) {
+      quizUserChoices[quizStep] = matchId;
+      quizStep++;
+      showHaptic(`Выбрано: ${choiceTitle}`);
+      renderQuiz();
+    }
+
+    // Детальное окно товара (PDP Modal)
+    function openPdp(productId) {
+      const p = PRODUCTS.find(x => x.id === productId);
+      if (!p) return;
+      selectedPdpProduct = p;
+      pdpImgIdx = 0;
+      pdpSelectedVol = p.selectedVolIndex;
+
+      document.getElementById('pdp-category').innerText = p.categoryLabel;
+      document.getElementById('pdp-title').innerText = p.title;
+      document.getElementById('pdp-subtitle').innerText = p.subtitle;
+      document.getElementById('pdp-img').src = p.images[0];
+      
+      const volContainer = document.getElementById('pdp-volumes-container');
+      volContainer.innerHTML = p.volumes.map((v, i) => `
+        <button onclick="selectPdpVolume(${i}, this)" class="pdp-vol-btn p-2.5 rounded-xl border text-left ${i === pdpSelectedVol ? 'border-transparent bg-[#3A4436] dark:bg-[#43523E] text-white' : 'c-card c-text'}">
+          <p class="font-semibold text-xs">${v.label}</p>
+          <p class="text-[10px] opacity-80">${v.burn}</p>
+        </button>
+      `).join('');
+
+      document.getElementById('pdp-wick-block').style.display = p.wick ? 'block' : 'none';
+      selectPyramid('top', document.querySelector('.pyr-tab'));
+
+      // Рендеринг раздела Отзывы в карточке товара
+      const reviewsCountEl = document.getElementById('pdp-reviews-count');
+      if (reviewsCountEl) {
+        reviewsCountEl.innerText = `${p.reviewsCount} отзывов • 98% рекомендуют этот аромат`;
+      }
+      const reviewsList = document.getElementById('pdp-reviews-list');
+      if (reviewsList && p.reviews) {
+        reviewsList.innerHTML = p.reviews.map(r => `
+          <div class="p-2.5 rounded-xl border c-card space-y-1">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <div class="w-5 h-5 rounded-full bg-[#B8683D] dark:bg-[#D9875A] text-white flex items-center justify-center text-[10px] font-bold">
+                  ${r.author.charAt(0)}
+                </div>
+                <span class="text-xs font-semibold c-text">${r.author}</span>
+                ${r.verified ? `<span class="px-1.5 py-0.2 rounded text-[8px] bg-green-100 dark:bg-emerald-900/40 text-green-700 dark:text-emerald-400 font-semibold">✓ Проверенная покупка</span>` : ''}
+              </div>
+              <span class="text-[10px] c-text-muted">${r.date}</span>
+            </div>
+            <div class="flex items-center text-amber-500 text-[10px]">
+              ★★★★★
+            </div>
+            <p class="text-[11px] c-text leading-relaxed">${r.text}</p>
+          </div>
+        `).join('');
+      }
+
+      document.getElementById('pdp-modal').classList.remove('hidden');
+      showHaptic('Карточка открыта');
+    }
+
+    function closePdpModal() {
+      document.getElementById('pdp-modal').classList.add('hidden');
+    }
+
+    function prevPdpImg() {
+      if (!selectedPdpProduct) return;
+      pdpImgIdx = (pdpImgIdx > 0) ? pdpImgIdx - 1 : selectedPdpProduct.images.length - 1;
+      document.getElementById('pdp-img').src = selectedPdpProduct.images[pdpImgIdx];
+    }
+
+    function nextPdpImg() {
+      if (!selectedPdpProduct) return;
+      pdpImgIdx = (pdpImgIdx < selectedPdpProduct.images.length - 1) ? pdpImgIdx + 1 : 0;
+      document.getElementById('pdp-img').src = selectedPdpProduct.images[pdpImgIdx];
+    }
+
+    function selectPdpVolume(idx, btn) {
+      pdpSelectedVol = idx;
+      document.querySelectorAll('.pdp-vol-btn').forEach(b => {
+        b.className = "pdp-vol-btn p-2.5 rounded-xl border c-card c-text text-left";
+      });
+      btn.className = "pdp-vol-btn p-2.5 rounded-xl border border-transparent bg-[#3A4436] dark:bg-[#43523E] text-white text-left";
+      showHaptic(`Выбран объём ${selectedPdpProduct.volumes[idx].label}`);
+    }
+
+    function selectPdpWick(wick, btn) {
+      pdpSelectedWick = wick;
+      document.querySelectorAll('.wick-btn').forEach(b => {
+        b.className = "wick-btn p-2.5 rounded-xl border c-surface text-left c-text";
+      });
+      btn.className = "wick-btn p-2.5 rounded-xl border border-transparent bg-[#B8683D] dark:bg-[#D9875A] text-white text-left";
+      showHaptic(`Фитиль: ${wick === 'wooden' ? 'Деревянный' : 'Хлопковый'}`);
+    }
+
+    function selectPyramid(stage, btn) {
+      document.querySelectorAll('.pyr-tab').forEach(b => {
+        b.className = "pyr-tab py-1.5 rounded-lg text-[10px] font-semibold c-text-muted";
+      });
+      btn.className = "pyr-tab py-1.5 rounded-lg text-[10px] font-semibold c-card text-[#B8683D] dark:text-[#D9875A] shadow-xs";
+
+      if (selectedPdpProduct && selectedPdpProduct.pyramid) {
+        const pStage = selectedPdpProduct.pyramid[stage];
+        document.getElementById('pyr-time').innerText = pStage.time;
+        document.getElementById('pyr-desc').innerText = pStage.desc;
+        document.getElementById('pyr-notes').innerHTML = pStage.notes.map(n => `
+          <span class="px-2 py-0.5 rounded-md text-[10px] bg-[#B8683D]/10 dark:bg-[#D9875A]/20 text-[#B8683D] dark:text-[#D9875A] font-medium">✦ ${n}</span>
+        `).join('');
+      }
+    }
+
+    function addPdpToCart() {
+      if (selectedPdpProduct) {
+        selectedPdpProduct.selectedVolIndex = pdpSelectedVol;
+        addToCart(selectedPdpProduct.id);
+        closePdpModal();
+      }
+    }
+
+    // Оплата
+    function completePayment() {
+      if (cart.length === 0) return;
+      cart = [];
+      updateCartBadges();
+      renderCart();
+      
+      const trackNum = deliveryMethod === 'post' 
+        ? `POST-${selectedPost.index}-RU` 
+        : deliveryMethod === 'courier' 
+        ? `DOOR-${Math.floor(1000000 + Math.random() * 9000000)}` 
+        : `CDEK-${Math.floor(100000000 + Math.random() * 900000000)}-RU`;
+
+      document.getElementById('payment-track-label').innerText = deliveryMethod === 'post' ? 'Трек Почты РФ:' : deliveryMethod === 'courier' ? 'Курьерская доставка:' : 'Трек СДЭК:';
+      document.getElementById('order-track-num').innerText = trackNum;
+      document.getElementById('payment-modal').classList.remove('hidden');
+      showHaptic('Заказ успешно оплачен');
+    }
+
+    function closePaymentModal() {
+      document.getElementById('payment-modal').classList.add('hidden');
+      switchTab('profile');
+    }
+
+    function openTrackingModal() {
+      document.getElementById('tracking-modal').classList.remove('hidden');
+    }
+    function closeTrackingModal() {
+      document.getElementById('tracking-modal').classList.add('hidden');
+    }
+
+    function openReviewModal() {
+      document.getElementById('review-form').classList.remove('hidden');
+      document.getElementById('review-success').classList.add('hidden');
+      document.getElementById('review-modal').classList.remove('hidden');
+    }
+    function closeReviewModal() {
+      document.getElementById('review-modal').classList.add('hidden');
+    }
+    function submitReviewReward() {
+      bonusBalance += 150;
+      document.getElementById('profile-bonus-count').innerText = bonusBalance;
+      document.getElementById('cart-bonus-avail').innerText = bonusBalance;
+      document.getElementById('review-form').classList.add('hidden');
+      document.getElementById('review-success').classList.remove('hidden');
+      showHaptic('Начислено +150 бонусов');
+      setTimeout(closeReviewModal, 1800);
+    }
+
+    // Переключение вкладок с сохранением стилей и надежной привязкой бэйджей
+    function switchTab(tabId) {
+      ['catalog', 'sommelier', 'cart', 'profile'].forEach(id => {
+        document.getElementById(`tab-${id}`).classList.add('hidden');
+        const btn = document.getElementById(`nav-${id}`);
+        btn.classList.remove('text-[#B8683D]', 'dark:text-[#D9875A]', 'font-semibold');
+        btn.classList.add('text-gray-500', 'dark:text-[#A39B92]');
+      });
+
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`nav-${tabId}`);
+      activeBtn.classList.remove('text-gray-500', 'dark:text-[#A39B92]');
+      activeBtn.classList.add('text-[#B8683D]', 'dark:text-[#D9875A]', 'font-semibold');
+      showHaptic(`Экран: ${tabId}`);
+    }
+
+    function scrollToCatalog() {
+      document.getElementById('catalog-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function filterCategory(cat, btn) {
+      currentCategory = cat;
+      document.querySelectorAll('.cat-pill').forEach(b => {
+        b.className = "cat-pill px-3.5 py-1.5 rounded-xl text-xs font-medium c-surface border c-text-muted whitespace-nowrap";
+      });
+      btn.className = "cat-pill px-3.5 py-1.5 rounded-xl text-xs font-medium bg-[#B8683D] dark:bg-[#D9875A] text-white whitespace-nowrap shadow-sm";
+      renderProducts();
+      showHaptic(`Фильтр: ${cat}`);
+    }
+
+    function toggleSearch() {
+      const bar = document.getElementById('search-bar');
+      bar.classList.toggle('hidden');
+      if (!bar.classList.contains('hidden')) document.getElementById('search-input').focus();
+    }
+    function handleSearch(val) { renderProducts(val); }
+    function clearSearch() {
+      document.getElementById('search-input').value = '';
+      renderProducts('');
+    }
+
+    // Полноценное переключение темы с глубоким затемнением и идеальной читаемостью
+    function toggleTheme() {
+      darkMode = !darkMode;
+      const htmlEl = document.documentElement;
+      const appEl = document.getElementById('app-container');
+      const themeIcon = document.getElementById('theme-icon');
+
+      if (darkMode) {
+        htmlEl.classList.add('dark');
+        appEl.classList.add('dark');
+        // Солнце для темной темы
+        themeIcon.innerHTML = `
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        `;
+      } else {
+        htmlEl.classList.remove('dark');
+        appEl.classList.remove('dark');
+        // Луна для светлой темы
+        themeIcon.innerHTML = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>`;
+      }
+
+      // Перерендеринг динамических компонентов
+      renderProducts();
+      renderCart();
+      renderQuiz();
+      renderCdekList();
+      renderPostList();
+      
+      showHaptic(darkMode ? 'Тёмная тема (Nordic Twilight)' : 'Светлая тема (Linen Day)');
+    }
+
+    // Тост внутри зоны приложения
+    function showHaptic(text) {
+      const toast = document.getElementById('haptic-toast');
+      document.getElementById('haptic-text').innerText = text;
+      toast.style.opacity = '1';
+      setTimeout(() => { toast.style.opacity = '0'; }, 1500);
+    }
+
+    function startReservationTimer() {
+      let sec = 14 * 60 + 58;
+      setInterval(() => {
+        if (sec > 0) sec--;
+        const m = Math.floor(sec / 60).toString().padStart(2, '0');
+        const s = (sec % 60).toString().padStart(2, '0');
+        const el = document.getElementById('reservation-timer');
+        if (el) el.innerText = `${m}:${s} мин`;
+      }, 1000);
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
